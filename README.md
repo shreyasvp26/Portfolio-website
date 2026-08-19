@@ -78,4 +78,3 @@ These are deliberate and worth preserving:
 - **`status` is honest**, including `In progress` and `Engine complete`.
 - **`disclosure`** exists for caveats that belong above the fold rather than
   buried — unmeasured benchmarks, AI-assisted authorship, medical disclaimers.
-# Portfolio-website
