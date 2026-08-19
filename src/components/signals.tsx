@@ -7,7 +7,7 @@ export async function GithubPanel() {
   const gh = await getGithubSnapshot();
 
   return (
-    <div className="rounded-xl border border-border bg-surface p-5">
+    <div className="rounded-2xl border border-border bg-surface/60 p-5 backdrop-blur-sm">
       <div className="flex items-baseline justify-between gap-3">
         <h3 className="font-mono text-xs tracking-widest text-faint uppercase">
           GitHub activity
@@ -81,7 +81,7 @@ export function CompetitivePanel() {
   ];
 
   return (
-    <div className="rounded-xl border border-border bg-surface p-5">
+    <div className="rounded-2xl border border-border bg-surface/60 p-5 backdrop-blur-sm">
       <h3 className="font-mono text-xs tracking-widest text-faint uppercase">
         Competitive programming
       </h3>

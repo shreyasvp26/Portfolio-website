@@ -115,22 +115,50 @@ function EvalForgeLayers() {
   return (
     <Frame viewBox="0 0 660 348">
       <title>EvalForge layered architecture</title>
-      <Box x={20} y={16} w={296} title="apps/web" sub="Next.js — renderer over the API" />
-      <Box x={344} y={16} w={296} title="apps/api" sub="FastAPI control plane" />
-      <Arrow d="M 316 39 L 340 39" />
-      <Box x={20} y={104} w={620} title="application" sub="use cases · unit of work · ports (auth, queue, events)" />
-      <Arrow d="M 492 62 L 492 100" />
+
+      <Box x={92} y={16} w={266} title="apps/web" sub="Next.js — renderer over the API" />
+      <Box x={374} y={16} w={266} title="apps/api" sub="FastAPI control plane" />
+      <Arrow d="M 358 39 L 370 39" />
+
       <Box
-        x={20}
+        x={92}
+        y={104}
+        w={548}
+        title="application"
+        sub="use cases · unit of work · ports (auth, queue, events)"
+      />
+      <Arrow d="M 507 62 L 507 100" />
+
+      <Box
+        x={92}
         y={192}
-        w={620}
+        w={548}
         title="domain"
         sub="aggregates · invariants · domain events — zero outbound imports"
         accent
       />
-      <Arrow d="M 330 150 L 330 188" />
-      <Box x={20} y={282} w={620} title="infrastructure" sub="Postgres · queue · event bus · composition root" />
-      <Arrow d="M 140 280 L 140 152" dashed label="implements ports" labelX={218} labelY={222} />
+      <Arrow d="M 366 150 L 366 188" />
+
+      <Box
+        x={92}
+        y={282}
+        w={548}
+        title="infrastructure"
+        sub="Postgres · queue · event bus · composition root"
+      />
+
+      {/* Routed through the left gutter so it never crosses a box. */}
+      <Arrow d="M 56 300 L 56 127 L 88 127" dashed />
+      <text
+        x={40}
+        y={214}
+        textAnchor="middle"
+        fontSize="10"
+        fill={C.sub}
+        transform="rotate(-90 40 214)"
+      >
+        implements ports
+      </text>
     </Frame>
   );
 }

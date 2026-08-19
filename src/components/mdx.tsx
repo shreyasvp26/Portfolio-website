@@ -8,16 +8,20 @@ import { AlertTriangle, Info, Lightbulb } from "lucide-react";
 import { DIAGRAMS, type DiagramName } from "./diagrams";
 
 const TONES = {
-  info: { icon: Info, cls: "border-accent-dim/50 bg-accent/[0.06]", iconCls: "text-accent" },
+  info: {
+    icon: Info,
+    cls: "border-accent/30 bg-gradient-to-br from-accent/[0.09] to-transparent",
+    iconCls: "text-accent",
+  },
   warn: {
     icon: AlertTriangle,
-    cls: "border-amber-600/40 bg-amber-500/[0.06]",
+    cls: "border-amber-500/30 bg-gradient-to-br from-amber-500/[0.09] to-transparent",
     iconCls: "text-amber-400",
   },
   insight: {
     icon: Lightbulb,
-    cls: "border-border-strong bg-raised",
-    iconCls: "text-muted",
+    cls: "border-accent-2/30 bg-gradient-to-br from-accent-2/[0.09] to-transparent",
+    iconCls: "text-accent-2",
   },
 } as const;
 
@@ -32,7 +36,7 @@ function Callout({
 }) {
   const { icon: Icon, cls, iconCls } = TONES[tone];
   return (
-    <aside className={`my-6 flex gap-3 rounded-lg border p-4 ${cls}`}>
+    <aside className={`my-7 flex gap-3 rounded-xl border p-4 backdrop-blur-sm ${cls}`}>
       <Icon className={`mt-0.5 size-4 shrink-0 ${iconCls}`} aria-hidden />
       <div className="min-w-0 text-sm">
         {title ? <p className="mb-1 font-medium text-text">{title}</p> : null}
@@ -47,11 +51,14 @@ function Diagram({ name, caption }: { name: DiagramName; caption: string }) {
   const Svg = DIAGRAMS[name];
   if (!Svg) return null;
   return (
-    <figure className="my-8">
-      <div className="overflow-x-auto rounded-lg border border-border bg-surface p-4 sm:p-6">
+    // Diagrams are allowed to break the reading measure — they need the width.
+    <figure className="my-10 lg:-mx-16 xl:-mx-24">
+      <div className="grad-border overflow-x-auto rounded-2xl p-4 sm:p-7">
         <Svg />
       </div>
-      <figcaption className="mt-2.5 text-xs leading-relaxed text-faint">{caption}</figcaption>
+      <figcaption className="mt-3 max-w-2xl text-xs leading-relaxed text-faint lg:mx-16 xl:mx-24">
+        {caption}
+      </figcaption>
     </figure>
   );
 }
@@ -67,10 +74,10 @@ function Decision({
   cost: string;
 }) {
   return (
-    <div className="my-6 overflow-hidden rounded-lg border border-border">
-      <div className="border-b border-border bg-surface px-4 py-2.5">
-        <p className="font-mono text-xs tracking-wider text-faint uppercase">Decision</p>
-        <p className="mt-0.5 text-sm font-medium text-text">{choice}</p>
+    <div className="my-7 overflow-hidden rounded-xl border border-border bg-surface/40 backdrop-blur-sm">
+      <div className="relative border-b border-border bg-gradient-to-r from-accent/[0.08] to-transparent px-4 py-3">
+        <p className="grad-accent-text font-mono text-xs tracking-[0.18em] uppercase">Decision</p>
+        <p className="mt-1 text-sm font-medium text-text">{choice}</p>
       </div>
       <dl className="divide-y divide-border text-sm sm:divide-y-0">
         <div className="px-4 py-3">

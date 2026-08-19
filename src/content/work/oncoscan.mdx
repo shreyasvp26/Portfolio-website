@@ -15,14 +15,14 @@ stack:
   - Vite
   - Vercel
 repo: https://github.com/shreyasvp26/Skin-Cancer-Detection-Using-Deep-Transfer-Learning
-demo: https://skin-cancer-detection-using-deep-tr.vercel.app
+demo: https://skin-cancerdetection.vercel.app/
 metrics:
   - value: "1408-d"
     label: "fused feature vector — 1280-d image features + 128-d metadata"
     source: "backend/model — EfficientNet-B0 backbone concatenated with metadata MLP output"
   - value: "Live"
-    label: "public deployment: React on Vercel, FastAPI inference service"
-    source: "skin-cancer-detection-using-deep-tr.vercel.app"
+    label: "public deployment: React SPA on Vercel + FastAPI inference API"
+    source: "skin-cancerdetection.vercel.app"
   - value: "Not calibrated"
     label: "classification threshold — default 0.5, configurable, never validated clinically"
     source: "CLASSIFICATION_THRESHOLD env var, documented in README limitations"

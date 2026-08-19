@@ -1,43 +1,87 @@
 @import "tailwindcss";
 
 @theme {
-  --color-bg: #08090a;
-  --color-surface: #0e0f11;
-  --color-raised: #14161a;
-  --color-border: #1e2126;
-  --color-border-strong: #2b2f36;
-  --color-text: #e9eaec;
-  --color-muted: #9aa0a8;
-  --color-faint: #6b7178;
+  --color-bg: #05050a;
+  --color-surface: #0b0c12;
+  --color-raised: #12141c;
+  --color-border: #1c1f2a;
+  --color-border-strong: #2b3040;
+  --color-text: #edeef2;
+  --color-muted: #a1a7b5;
+  --color-faint: #6e7583;
+
   --color-accent: #38bdf8;
+  --color-accent-2: #a78bfa;
+  --color-accent-3: #2dd4bf;
   --color-accent-dim: #0e7490;
 
   --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-geist-mono), ui-monospace, "SF Mono", monospace;
 
-  --text-xs: 0.75rem;
   --text-sm: 0.8125rem;
   --text-base: 0.9375rem;
 
-  --animate-fade-up: fade-up 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+  --animate-drift-a: drift-a 26s ease-in-out infinite alternate;
+  --animate-drift-b: drift-b 32s ease-in-out infinite alternate;
+  --animate-drift-c: drift-c 38s ease-in-out infinite alternate;
+  --animate-sheen: sheen 8s ease-in-out infinite;
+  --animate-pulse-dot: pulse-dot 2.4s ease-in-out infinite;
 }
 
-@keyframes fade-up {
+@keyframes drift-a {
   from {
-    opacity: 0;
-    transform: translateY(6px);
+    transform: translate3d(-6%, -4%, 0) scale(1);
   }
   to {
+    transform: translate3d(8%, 6%, 0) scale(1.18);
+  }
+}
+
+@keyframes drift-b {
+  from {
+    transform: translate3d(6%, 4%, 0) scale(1.1);
+  }
+  to {
+    transform: translate3d(-8%, -6%, 0) scale(0.95);
+  }
+}
+
+@keyframes drift-c {
+  from {
+    transform: translate3d(-4%, 8%, 0) scale(0.95);
+  }
+  to {
+    transform: translate3d(6%, -8%, 0) scale(1.15);
+  }
+}
+
+@keyframes sheen {
+  0%,
+  55%,
+  100% {
+    background-position: 200% center;
+  }
+  30% {
+    background-position: -40% center;
+  }
+}
+
+@keyframes pulse-dot {
+  0%,
+  100% {
     opacity: 1;
-    transform: none;
+    box-shadow: 0 0 0 0 color-mix(in oklab, var(--color-accent-3) 55%, transparent);
+  }
+  70% {
+    opacity: 0.75;
+    box-shadow: 0 0 0 5px transparent;
   }
 }
 
 html {
   color-scheme: dark;
   scroll-behavior: smooth;
-  /* Offset anchored headings from the sticky nav. */
-  scroll-padding-top: 5rem;
+  scroll-padding-top: 5.5rem;
 }
 
 body {
@@ -51,14 +95,21 @@ body {
 }
 
 ::selection {
-  background-color: color-mix(in oklab, var(--color-accent) 28%, transparent);
+  background-color: color-mix(in oklab, var(--color-accent) 30%, transparent);
   color: #fff;
 }
 
 *:focus-visible {
   outline: 2px solid var(--color-accent);
   outline-offset: 2px;
-  border-radius: 3px;
+  border-radius: 4px;
+}
+
+/* The palette input is already the focused element of an open dialog, so the
+   global ring is redundant noise. Needs to live here: unlayered rules outrank
+   Tailwind's layered utilities, so `focus-visible:outline-none` can't win. */
+[cmdk-input]:focus-visible {
+  outline: none;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -68,21 +119,112 @@ body {
   *,
   *::before,
   *::after {
-    animation-duration: 0.01ms !important;
+    animation: none !important;
     transition-duration: 0.01ms !important;
   }
 }
 
-/* A faint dot grid keeps large dark areas from feeling flat. */
-.dot-grid {
-  background-image: radial-gradient(circle at 1px 1px, var(--color-border-strong) 1px, transparent 0);
-  background-size: 28px 28px;
+/* ---------------- Backdrop layers ---------------- */
+
+/* Soft colour fields that drift behind the whole page. */
+.aurora-blob {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(90px);
+  will-change: transform;
 }
 
-/* ---------- Long-form MDX typography ---------- */
+/* Fine film grain — kills the flatness of large dark areas. */
+.grain::after {
+  content: "";
+  position: fixed;
+  inset: -50%;
+  pointer-events: none;
+  opacity: 0.035;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+.dot-grid {
+  background-image: radial-gradient(circle at 1px 1px, var(--color-border-strong) 1px, transparent 0);
+  background-size: 30px 30px;
+}
+
+/* ---------------- Gradient utilities ---------------- */
+
+.grad-text {
+  background-image: linear-gradient(120deg, #ffffff 0%, #cfd4e2 42%, #8f97ab 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.grad-accent-text {
+  background-image: linear-gradient(
+    100deg,
+    var(--color-accent-3),
+    var(--color-accent),
+    var(--color-accent-2)
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Sweeping highlight for the hero eyebrow. */
+.sheen-text {
+  background-image: linear-gradient(
+    100deg,
+    var(--color-accent) 0%,
+    var(--color-accent) 38%,
+    #ffffff 50%,
+    var(--color-accent) 62%,
+    var(--color-accent) 100%
+  );
+  background-size: 250% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: var(--animate-sheen);
+}
+
+/* A hairline rule that fades out at both ends. */
+.grad-rule {
+  height: 1px;
+  border: 0;
+  background: linear-gradient(
+    to right,
+    transparent,
+    var(--color-border-strong) 12%,
+    var(--color-border-strong) 88%,
+    transparent
+  );
+}
+
+/* Gradient hairline border via two stacked backgrounds. */
+.grad-border {
+  border: 1px solid transparent;
+  background-image:
+    linear-gradient(var(--color-surface), var(--color-surface)),
+    linear-gradient(
+      135deg,
+      color-mix(in oklab, var(--color-accent) 45%, transparent),
+      color-mix(in oklab, var(--color-accent-2) 35%, transparent) 45%,
+      var(--color-border) 75%
+    );
+  background-origin: border-box;
+  background-clip: padding-box, border-box;
+}
+
+.glow-accent {
+  box-shadow:
+    0 0 0 1px color-mix(in oklab, var(--color-accent) 22%, transparent),
+    0 8px 40px -12px color-mix(in oklab, var(--color-accent) 30%, transparent);
+}
+
+/* ---------------- Long-form MDX typography ---------------- */
 
 .prose-doc {
-  max-width: 68ch;
+  max-width: 72ch;
 }
 
 .prose-doc > * + * {
@@ -92,19 +234,24 @@ body {
 .prose-doc h2 {
   margin-top: 2.75em;
   margin-bottom: 0.6em;
-  font-size: 1.3rem;
+  font-size: 1.45rem;
   font-weight: 600;
-  letter-spacing: -0.015em;
-  scroll-margin-top: 6rem;
+  letter-spacing: -0.02em;
+  scroll-margin-top: 6.5rem;
+  background-image: linear-gradient(110deg, #ffffff, #b9c0d2);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
 }
 
 .prose-doc h3 {
   margin-top: 2em;
   margin-bottom: 0.4em;
-  font-size: 1.0625rem;
+  font-size: 1.1rem;
   font-weight: 600;
   letter-spacing: -0.01em;
-  scroll-margin-top: 6rem;
+  color: var(--color-text);
+  scroll-margin-top: 6.5rem;
 }
 
 .prose-doc p,
@@ -143,7 +290,7 @@ body {
 }
 
 .prose-doc li::marker {
-  color: var(--color-faint);
+  color: var(--color-accent-dim);
 }
 
 .prose-doc li + li {
@@ -151,10 +298,10 @@ body {
 }
 
 .prose-doc blockquote {
-  border-left: 2px solid var(--color-accent-dim);
+  border-left: 2px solid transparent;
+  border-image: linear-gradient(var(--color-accent), var(--color-accent-2)) 1;
   padding-left: 1rem;
   color: var(--color-muted);
-  font-style: normal;
 }
 
 .prose-doc :not(pre) > code {
@@ -170,8 +317,8 @@ body {
 .prose-doc pre {
   overflow-x: auto;
   border: 1px solid var(--color-border);
-  border-radius: 8px;
-  background-color: #0c0d0f !important;
+  border-radius: 10px;
+  background-color: #08090e !important;
   padding: 1rem 1.1rem;
   font-size: 0.8125rem;
   line-height: 1.6;
@@ -180,10 +327,6 @@ body {
 .prose-doc pre code {
   font-family: var(--font-mono);
   display: grid;
-}
-
-.prose-doc pre code [data-line] {
-  padding-inline: 0;
 }
 
 .prose-doc table {
@@ -203,7 +346,7 @@ body {
 }
 
 .prose-doc th {
-  background-color: var(--color-surface);
+  background-color: var(--color-raised);
   color: var(--color-text);
   font-weight: 600;
 }
@@ -213,7 +356,9 @@ body {
 }
 
 .prose-doc hr {
-  border-color: var(--color-border);
+  border: 0;
+  height: 1px;
+  background: linear-gradient(to right, var(--color-border-strong), transparent);
   margin-block: 2.5em;
 }
 
@@ -226,5 +371,6 @@ body {
 .prose-doc h2 a:hover::after,
 .prose-doc h3 a:hover::after {
   content: " #";
+  -webkit-text-fill-color: var(--color-accent);
   color: var(--color-accent);
 }

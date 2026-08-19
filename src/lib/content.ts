@@ -22,8 +22,16 @@ export type CaseStudyMeta = {
   stack: string[];
   repo?: string;
   demo?: string;
+  /** Overrides the demo button label, e.g. "View on the App Store". */
+  demoLabel?: string;
   /** Honest project state, rendered as a badge. */
-  status: "Deployed" | "In production" | "Engine complete" | "In progress" | "Archived";
+  status:
+    | "Deployed"
+    | "In production"
+    | "Engine complete"
+    | "In progress"
+    | "Redeploying"
+    | "Archived";
   order: number;
   metrics?: Metric[];
   /** Optional caveat rendered above the body, e.g. unmeasured benchmarks. */

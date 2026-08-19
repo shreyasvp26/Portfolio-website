@@ -48,11 +48,11 @@ export default async function CaseStudyPage({ params }: Props) {
           <span className="font-mono text-xs text-faint">· {meta.role}</span>
         </div>
 
-        <h1 className="mt-4 text-2xl font-semibold tracking-tight text-text sm:text-3xl">
+        <h1 className="grad-text mt-5 text-[clamp(2rem,5vw,3.25rem)] leading-[1.05] font-semibold tracking-[-0.03em]">
           {meta.title}
         </h1>
-        <p className="mt-1.5 text-base text-accent">{meta.tagline}</p>
-        <p className="mt-5 max-w-2xl text-base leading-relaxed text-muted">{meta.summary}</p>
+        <p className="grad-accent-text mt-2 text-lg font-medium">{meta.tagline}</p>
+        <p className="mt-6 max-w-2xl text-base leading-relaxed text-muted">{meta.summary}</p>
 
         <div className="mt-6 flex flex-wrap gap-1.5">
           {meta.stack.map((s) => (
@@ -67,7 +67,7 @@ export default async function CaseStudyPage({ params }: Props) {
                 href={meta.repo}
                 target="_blank"
                 rel="noreferrer noopener"
-                className="inline-flex items-center gap-2 rounded-md border border-border-strong px-3 py-1.5 text-sm text-muted transition-colors hover:border-faint hover:text-text"
+                className="inline-flex items-center gap-2 rounded-lg border border-border-strong bg-surface/50 px-4 py-2 text-sm text-muted backdrop-blur-sm transition-colors hover:border-accent/50 hover:text-text"
               >
                 <GithubIcon className="size-4" />
                 Source
@@ -78,10 +78,10 @@ export default async function CaseStudyPage({ params }: Props) {
                 href={meta.demo}
                 target="_blank"
                 rel="noreferrer noopener"
-                className="inline-flex items-center gap-2 rounded-md bg-text px-3 py-1.5 text-sm font-medium text-bg transition-colors hover:bg-white"
+                className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-accent-3 via-accent to-accent-2 px-4 py-2 text-sm font-medium text-[#05050a] shadow-[0_6px_28px_-10px] shadow-accent/60 transition-shadow hover:shadow-[0_10px_36px_-10px] hover:shadow-accent/70"
               >
                 <ExternalIcon className="size-4" aria-hidden />
-                Live demo
+                {meta.demoLabel ?? "Live demo"}
               </a>
             ) : null}
           </div>
@@ -96,14 +96,16 @@ export default async function CaseStudyPage({ params }: Props) {
         ) : null}
 
         {meta.disclosure ? (
-          <aside className="mt-8 rounded-lg border border-border-strong bg-raised p-4">
-            <p className="font-mono text-xs tracking-widest text-faint uppercase">Disclosure</p>
-            <p className="mt-1.5 text-sm leading-relaxed text-muted">{meta.disclosure}</p>
+          <aside className="grad-border mt-8 max-w-3xl rounded-xl p-5">
+            <p className="grad-accent-text font-mono text-xs tracking-[0.18em] uppercase">
+              Disclosure
+            </p>
+            <p className="mt-2 text-sm leading-relaxed text-muted">{meta.disclosure}</p>
           </aside>
         ) : null}
       </header>
 
-      <hr className="my-10 border-border" />
+      <hr className="grad-rule my-12" />
 
       <Mdx source={doc.body} />
     </article>

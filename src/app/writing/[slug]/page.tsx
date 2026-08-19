@@ -54,10 +54,10 @@ export default async function PostPage({ params }: Props) {
           <time dateTime={doc.meta.date}>{DATE_FMT.format(new Date(doc.meta.date))}</time>
           <span>· {doc.meta.readingTime}</span>
         </div>
-        <h1 className="mt-3 text-2xl font-semibold tracking-tight text-text sm:text-3xl">
+        <h1 className="grad-text mt-4 text-[clamp(1.9rem,4.5vw,3rem)] leading-[1.08] font-semibold tracking-[-0.03em]">
           {doc.meta.title}
         </h1>
-        <p className="mt-3 max-w-2xl text-base leading-relaxed text-muted">
+        <p className="mt-4 max-w-2xl text-lg leading-relaxed text-muted">
           {doc.meta.description}
         </p>
         <div className="mt-5 flex flex-wrap gap-1.5">
@@ -67,7 +67,7 @@ export default async function PostPage({ params }: Props) {
         </div>
       </header>
 
-      <hr className="my-10 border-border" />
+      <hr className="grad-rule my-12" />
 
       <Mdx source={doc.body} />
     </article>

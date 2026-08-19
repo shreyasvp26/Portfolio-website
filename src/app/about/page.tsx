@@ -11,9 +11,11 @@ export const metadata: Metadata = {
 export default function AboutPage() {
   return (
     <>
-      <section className="animate-fade-up py-14 sm:py-20">
-        <h1 className="text-2xl font-semibold tracking-tight text-text sm:text-3xl">About</h1>
-        <div className="prose-doc mt-6">
+      <section className="py-16 sm:py-24">
+        <h1 className="grad-text text-[clamp(2.25rem,6vw,3.5rem)] leading-[1.05] font-semibold tracking-[-0.03em]">
+          About
+        </h1>
+        <div className="prose-doc mt-8">
           <p>
             I&apos;m a final-year Computer Science student at IIIT Pune. My foundation is core CS —
             data structures, algorithms, operating systems, databases — and most of what I build sits

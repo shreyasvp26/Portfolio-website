@@ -11,9 +11,10 @@ export const site = {
   resumePath: "/Shreyas_Patil_Resume.pdf",
   socials: {
     github: "https://github.com/shreyasvp26",
-    linkedin: "https://www.linkedin.com/in/shreyasvp26",
-    leetcode: "https://leetcode.com/u/shreyasvp26",
-    codechef: "https://www.codechef.com/users/shreyasvp26",
+    linkedin: "https://www.linkedin.com/in/shreyas-patil-005a6830a/",
+    // TODO(shreyas): confirm these two handles — the CodeChef URL 404s as written.
+    leetcode: "https://leetcode.com/u/ShreyasvPatil/",
+    codechef: "https://www.codechef.com/users/shreyas_vp",
   },
 } as const;
 
@@ -51,13 +52,13 @@ export type Experience = {
 export const experience: Experience[] = [
   {
     company: "Shreepad Seva Mandal",
-    title: "Software Developer & iOS Operations Lead",
+    title: "iOS Coding & Operations Lead",
     location: "Pune (Remote)",
     period: "Apr 2026 — Present",
     current: true,
     points: [
-      "Own the iOS release pipeline end to end for a nonprofit cross-platform app, from TestFlight beta distribution through App Store submission and review.",
-      "Debug production issues across authentication, push notifications, and iOS/Android platform parity, contributing fixes to the Android codebase to keep behaviour consistent.",
+      "One of three developers on a Next.js + Capacitor app live on the App Store; own the iOS release pipeline from TestFlight beta distribution through App Store submission and review.",
+      "Debug production issues across authentication, push notifications, and native-plugin parity, also contributing to the Android side to keep behaviour consistent across platforms.",
     ],
   },
   {

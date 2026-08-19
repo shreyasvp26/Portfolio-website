@@ -19,9 +19,10 @@ export const metadata: Metadata = {
 
 function Block({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <section className="border-t border-border py-7">
-      <h2 className="font-mono text-xs tracking-widest text-faint uppercase">{label}</h2>
-      <div className="mt-4">{children}</div>
+    <section className="py-8">
+      <hr className="grad-rule mb-7" />
+      <h2 className="grad-accent-text font-mono text-xs tracking-[0.18em] uppercase">{label}</h2>
+      <div className="mt-5">{children}</div>
     </section>
   );
 }
@@ -33,7 +34,7 @@ export default function ResumePage() {
     <div className="py-12 sm:py-16">
       <header className="flex flex-wrap items-start justify-between gap-6">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-text sm:text-3xl">
+          <h1 className="grad-text text-[clamp(2rem,5vw,3rem)] leading-[1.05] font-semibold tracking-[-0.03em]">
             {site.name}
           </h1>
           <p className="mt-2 max-w-xl text-sm leading-relaxed text-muted">{site.positioning}</p>

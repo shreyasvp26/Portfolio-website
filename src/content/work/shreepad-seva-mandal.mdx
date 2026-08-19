@@ -1,64 +1,84 @@
 ---
 title: Shreepad Seva Mandal
-tagline: Owning the iOS release pipeline for a nonprofit app with real users
-summary: A three-engineer team, a cross-platform app, and real devotees who notice when push notifications stop working. I own the iOS release path end to end — TestFlight distribution, App Store submission and review, and the production bugs in authentication, notifications, and platform parity that only appear once strangers are using your build.
-role: Software Developer & iOS Operations Lead
+tagline: Shipping a Next.js app to the App Store, and owning what happens after
+summary: A nonprofit app built as a Next.js web app wrapped in Capacitor and shipped to both stores by three developers. I was the iOS coding and operations lead — owning the release path from TestFlight through App Store review — and also contributed to the Android side, chasing the production bugs in authentication, notifications, and native-plugin parity that only surface once strangers are using your build.
+role: iOS Coding & Operations Lead · Android contributor
 period: Apr 2026 — Present
 status: In production
 order: 3
 stack:
+  - Next.js
+  - TypeScript
+  - Capacitor
   - iOS
   - Android
-  - Firebase Auth
-  - Push notifications
   - TestFlight
   - App Store Connect
+demo: https://apps.apple.com/in/app/shreepad-seva-mandal/id6788840546
+demoLabel: View on the App Store
 metrics:
-  - value: "3"
-    label: "engineer cross-platform team"
-  - value: "2 platforms"
-    label: "kept at behavioural parity — I ship iOS and contribute Android fixes"
-  - value: "End to end"
-    label: "release ownership: build, beta distribution, submission, review, phased rollout"
+  - value: "Live on the App Store"
+    label: "publicly listed and actively maintained"
+    source: "apps.apple.com — Shreepad Seva Mandal App"
+  - value: "3 developers"
+    label: "no QA team, no release manager; I led iOS and contributed to Android"
+  - value: "1 codebase"
+    label: "one Next.js web app, two native Capacitor shells, two store listings"
 ---
 
 ## The problem
 
-Every project above this one is mine. This one isn't, and that is the point of including it.
+Every project above this one is mine. This one isn't, and that's why it's here.
 
-Shreepad Seva Mandal is a nonprofit organisation whose app is used by an actual community of people who are not engineers, do not read changelogs, and cannot be asked to reinstall a build. Three of us maintain it across iOS and Android. There is no QA team, no release manager, and no staging population large enough to catch everything — so the failure modes are the ones you only meet in production, on devices you don't own, in conditions you didn't anticipate.
+Shreepad Seva Mandal is a nonprofit whose app is used by an actual community — people who are not engineers, don't read changelogs, and can't be asked to reinstall a build to work around your bug. Three developers maintain it across iOS and Android; I lead the iOS side and contribute to Android where parity demands it. There is no QA team, no release manager, and no beta population large enough to catch everything, so the failure modes are the ones you only meet in production, on devices you don't own.
 
-Student projects almost never teach this. A course project is done when it works on your laptop. An app in the store is never done, and the skill it demands is not writing features — it's not breaking things for people who trust you.
+Student projects rarely teach this. A course project is finished when it works on your laptop. An app in the store is never finished, and the skill it demands isn't writing features — it's not breaking things for people who trust you.
+
+## Architecture: one web app, two native shells
+
+The app is a Next.js application running inside a Capacitor native shell, shipped as a real binary to both stores. For a three-person team maintaining two platforms, that's the decision that makes the whole thing tractable — but it relocates the difficulty rather than removing it.
+
+<Decision
+  choice="Ship a Next.js app inside a Capacitor shell rather than writing native iOS and Android clients."
+  because="Three engineers cannot maintain feature parity across two native codebases. One web codebase means a bug fixed is a bug fixed everywhere, and shipping a UI change doesn't require two implementations by two people who then have to agree."
+  cost="You inherit two native build systems anyway, and every capability that touches the device — notifications, authentication redirects, storage, permissions — runs through a plugin whose behaviour genuinely differs per platform. The shared layer is the easy 80%; the remaining 20% is where all the bugs live, and it's the part you can't write once."
+/>
+
+What surprised me is where the boundary actually falls. Product logic and UI became almost entirely platform-agnostic, which is the promised benefit and it's real. But the *native bridge* is not one API with two implementations — it's two platform behaviours behind a shared function signature, and the signature hides differences that matter.
 
 ## The release pipeline
 
-I own the path from a merged change to a user's phone. On iOS that path has a gatekeeper you cannot argue with, which changes how you work.
+I own the path from a merged change to a user's phone. On iOS that path has a gatekeeper you cannot argue with, and that changes how you work.
 
 <Diagram
   name="ssm-release"
-  caption="The iOS release path. App Store review is a hard, human-latency gate — a mistake caught after submission costs days, not minutes — so verification has to happen before the archive is uploaded, not after."
+  caption="The iOS release path. App Store review is a hard gate with human latency — a mistake caught after submission costs days, not minutes — so verification has to happen before the archive is uploaded, not after."
 />
 
-The asymmetry is what shapes everything. On the web, a bad deploy is a rollback. On iOS, a bad release is a new build, a new submission, a new review queue, and a phased rollout you have to nurse. That single fact pushes cost backwards through the whole process: the cheapest place to catch a bug is before the upload, so the TestFlight stage carries the weight that a rollback button carries elsewhere.
+The asymmetry shapes everything. On the web, a bad deploy is a rollback and you're done in minutes. On iOS, a bad release is a new build, a new submission, a new review queue, and a rollout you have to nurse. That single fact pushes cost backwards through the entire process: the cheapest place to catch a bug is before upload, so TestFlight has to carry the weight that a rollback button carries elsewhere.
 
 <Decision
-  choice="Treat TestFlight external testing as a mandatory gate rather than an optional courtesy."
-  because="Review latency makes post-submission fixes expensive in wall-clock days. Real devices in testers' hands surface the OS-version and device-specific problems that a simulator will not."
-  cost="Every release carries a built-in delay before it can even be submitted. Shipping a small fix takes days rather than hours, which is a genuinely frustrating trade — and still cheaper than an expedited-review request against a broken build."
+  choice="Treat TestFlight external testing as a mandatory gate, not an optional courtesy."
+  because="Review latency makes post-submission fixes expensive in wall-clock days. Real devices in testers' hands surface the OS-version and device-specific problems a simulator won't, and in a Capacitor app that includes WebView differences across iOS versions."
+  cost="Every release carries a built-in delay before it can even be submitted, so shipping a small fix takes days rather than hours. Genuinely frustrating, and still cheaper than an expedited-review request against a broken build."
 />
 
 ## Implementation and trade-offs
 
-**Authentication.** Auth bugs are the worst class of production bug in a community app, because a user who cannot log in has no path to tell you about it — they simply stop opening the app, and you never hear from them. Failures here are silent by construction, which means you cannot rely on user reports and have to reason about the state machine directly: what happens to a session that expires while the app is backgrounded, what happens on a device where the token was invalidated server-side, what happens when the same person signs in on a second device.
+**Authentication is the worst class of production bug.** A user who can't log in has no path to tell you about it — they stop opening the app, and you never hear from them. The failure is silent by construction, so you can't rely on user reports and have to reason about the state machine directly: what happens to a session that expires while the app is backgrounded, what happens when a token was invalidated server-side, what happens when the same person signs in on a second device.
 
-**Push notifications, which are two systems pretending to be one.** This was the most instructive part of the work. A single feature — "notify users" — is implemented by two entirely different platform mechanisms with different permission models, different payload shapes, different delivery guarantees, and different silent-failure modes. iOS requires explicit user permission that can be revoked in Settings without the app being told in any obvious way, and a token that rotates. Notifications are also the easiest thing in mobile to *believe* you have fixed, because a successful send is not a successful delivery, and nothing errors when a message quietly goes nowhere.
+Capacitor adds a wrinkle that pure-web auth doesn't have. An auth flow that leaves the WebView and comes back — the usual shape of a redirect-based login — depends on the native shell handing control back correctly, and "correctly" is a per-platform detail. A flow that works perfectly in a desktop browser can strand a user on a blank screen inside the app.
 
-**Platform parity is a real engineering constraint, not a QA checkbox.** I am the iOS lead, but I contribute fixes directly to the Android codebase, and I'd argue that's necessary rather than generous. Parity bugs are almost never "the Android version is broken" — they are "the two platforms disagree", and you cannot diagnose a disagreement from one side of it. Fixing the symptom only on iOS produces two codebases that drift, and drift is how a small inconsistency becomes two divergent products maintained by three people.
+**Push notifications are two systems pretending to be one.** This was the most instructive part. A single product feature — "notify users" — is implemented by two entirely different platform mechanisms with different permission models, payload shapes, delivery guarantees, and silent-failure modes. iOS requires explicit permission that a user can revoke in Settings without the app being told in any obvious way, and a device token that rotates.
+
+Notifications are also the easiest thing in mobile to *believe* you've fixed, because **a successful send is not a successful delivery**. Nothing errors when a message quietly goes nowhere. That means the only trustworthy verification is a real device actually receiving it, which is slow and unglamorous and the only thing that works.
+
+**Parity is an engineering constraint, not a QA checkbox.** I lead iOS, but I also work in the Android side, and I'd argue that's necessary rather than generous. Parity bugs are almost never "Android is broken" — they're "the two platforms disagree", and you can't diagnose a disagreement from one side of it. Patching the symptom only on iOS produces two shells that drift, and drift is how one small inconsistency becomes two divergent products maintained by three people.
 
 <Callout tone="insight" title="What this project taught me that the others didn't">
-My solo projects taught me architecture and modelling. This one taught me the cost of being wrong in front of people who did not consent to being test subjects — and that a large fraction of production engineering is designing so that the expensive mistakes are the ones that are hard to make.
+My solo projects taught me architecture and modelling. This one taught me the cost of being wrong in front of people who never consented to being test subjects — and that a large share of production engineering is arranging things so the expensive mistakes are the hard ones to make.
 </Callout>
 
 ## Outcomes
 
-The app is live and maintained, releases go out through a pipeline I own end to end, and production issues in authentication, notifications, and cross-platform behaviour have been diagnosed and fixed rather than worked around. The organisation gets a working app; I got the experience of shipping software where the users are strangers and the review gate has no undo.
+The app is [live on the App Store](https://apps.apple.com/in/app/shreepad-seva-mandal/id6788840546) and actively maintained. Releases go out through a pipeline I own, and production issues in authentication, notifications, and cross-platform behaviour have been diagnosed and fixed rather than worked around. The organisation gets a working app; I got the experience of shipping software where the users are strangers and the review gate has no undo.
