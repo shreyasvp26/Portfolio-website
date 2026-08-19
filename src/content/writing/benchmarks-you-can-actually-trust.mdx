@@ -1,0 +1,55 @@
+---
+title: What it actually takes to publish a ±2% benchmark
+description: I wanted to compare A*, Dijkstra, and BFS honestly. Most of the work had nothing to do with pathfinding, and the single-run timing I started with was noise.
+date: "2026-07-19"
+tags:
+  - C++
+  - Performance
+  - Testing
+---
+
+I built a C++17 engine to compare pathfinding algorithms — A\*, Dijkstra, and BFS — under interchangeable heuristics. The algorithms are textbook. Measuring them in a way I'd be willing to publish was not, and that turned out to be the actual project.
+
+## Single runs measure your machine, not your algorithm
+
+My first benchmark timed one run of each algorithm and printed a table. It was worse than useless, because it was confidently wrong: rerun it and the ordering of two close algorithms would sometimes flip.
+
+Everything on a modern machine conspires against a single timing. CPU frequency scaling means the first run and the fourth run execute on a differently-clocked core. Cache state carries over from whatever ran before. The OS scheduler migrates your thread. On a laptop, thermal throttling means a long benchmark run is measurably slower at the end than the start. Address space layout randomisation shifts allocation addresses between runs.
+
+None of these are large individually. Collectively they are far larger than the difference between a good heuristic and a slightly better one — which means a single-run benchmark cannot resolve the thing you built it to resolve.
+
+The fix is unglamorous: run each configuration many times and report the **median** rather than the mean. I settled on 30-run medians. The median matters more than the count, because timing noise is one-sided — a run can be arbitrarily slow if the scheduler preempts it, but no run can be faster than the actual work. That makes the distribution right-skewed, and a mean is dragged around by exactly the outliers you want to discard. The median is stable under them.
+
+That got me to roughly ±2% reproducibility across repeated runs on Linux and macOS, which is tight enough to make claims with.
+
+## Comparing correct things
+
+A performance comparison between algorithms is meaningless if one of them is subtly wrong, and "wrong" for a shortest-path solver is easy to miss — a solver can return a valid path that simply isn't optimal. It looks entirely plausible.
+
+Two checks caught more than any hand-written test case did.
+
+**Cross-algorithm agreement.** Dijkstra and A\* with an admissible heuristic must return paths of *identical cost* on the same graph. Not the same path — tie-breaking legitimately differs — but the same cost. BFS must agree too on unweighted grids. So I test the three implementations against each other on many generated maps. Each is an independent implementation of the same guarantee, and any disagreement means at least one is broken. This finds bugs that a fixed test fixture never would.
+
+**Property tests over generated inputs.** Rather than asserting a specific path on a specific map, assert invariants that must hold everywhere: the returned path is contiguous, every cell on it is traversable, its endpoints are the requested start and goal, its reported cost equals the recomputed cost of its own steps, and no path is returned when none exists. Forty-four Catch2 cases in this style exercise far more of the input space than a comparable number of example-based tests.
+
+## Making the compiler and runtime do the work
+
+Two settings I now consider non-negotiable in a C++ project, both of which are about moving errors earlier:
+
+**`-Wall -Wextra -Werror`.** Treating warnings as errors is only painful if you adopt it late. From the start it costs nothing and permanently prevents the state where 200 accumulated warnings mean nobody reads any of them. The engine builds with zero warnings across 154 build steps, and that stays true because it cannot regress.
+
+**A sanitizer build in CI.** `-fsanitize=address,undefined` catches the class of bug that testing alone is bad at: reading one element past the end of a container, signed overflow in an index calculation, use-after-free. Crucially, these bugs frequently *do not fail tests* — undefined behaviour that happens to produce the right answer on your machine and compiler today is still a latent bug. Running the same 44 tests under ASan and UBSan is a cheap way to ask "was that passing test actually correct, or just lucky?"
+
+The sanitizer build is a separate CI job because it is slow, so the fast suite stays fast.
+
+## Making results legible
+
+The last step was output people will actually read. JSON results are correct and nobody looks at them, so the benchmark also renders normalised ASCII bar charts directly in the terminal, and a Python script generates a self-contained HTML dashboard from the JSON.
+
+One detail I'd defend: the dashboard loads Chart.js from a CDN with a **subresource integrity hash**, so the browser rejects a tampered response. It's a small thing in a local dashboard, but a CDN script tag without an SRI hash is an unauthenticated dependency, and the habit is worth having in the places where it matters.
+
+## What I'd tell my earlier self
+
+The pathfinding algorithms took a couple of days. The measurement infrastructure took longer and taught me more.
+
+The transferable part is a question I now ask before believing any performance claim, including my own: **how many runs, which statistic, and what is the run-to-run variance?** If a benchmark can't answer those three, it isn't a benchmark — it's an anecdote with a number attached.

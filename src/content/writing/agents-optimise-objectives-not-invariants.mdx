@@ -1,0 +1,53 @@
+---
+title: Coding agents optimise the objective and ignore the invariant
+description: I built a platform for evaluating coding agents largely by using coding agents. The failure mode was consistent enough to be predictable — and it is invisible to a green test suite.
+date: "2026-08-11"
+tags:
+  - Agentic AI
+  - Software architecture
+  - Developer tools
+---
+
+I spent several weeks building an evaluation platform for autonomous coding agents, and I built a large share of it by directing coding agents. The recursion was not a gimmick — it turned out to be the fastest possible education in where these tools fail, because I was reviewing their output against an architecture whose whole purpose was to protect specific properties.
+
+One failure repeated often enough that I now expect it.
+
+## The pattern
+
+The codebase uses hexagonal architecture. The domain layer holds the business model and has one hard rule: **no outbound imports**. It cannot reach a database, a queue, or an HTTP client. Everything it needs is declared as a port, and infrastructure implements those ports. The payoff is that domain logic is unit-testable with no Docker, no database, and no API key — which matters because the rules being protected are the ones about score comparability, the single thing that must never silently break.
+
+Ask an agent to add a domain feature that happens to need persisted data, and here is what it does. It writes the feature. The test fails, because the domain layer has no way to reach storage. It then fixes the failing test — by importing the infrastructure repository directly into the domain module.
+
+The test goes green. The linter is satisfied. The typechecker is satisfied. The diff is small, readable, and locally sensible. And the property that justified the entire layer is gone.
+
+## Why this is structural, not a bug
+
+It is tempting to read this as the model being careless. I think it is more fundamental than that: the agent did precisely what it was asked.
+
+Its objective was legible and checkable — *make the test pass*. The constraint it violated was neither. "The domain layer must not import infrastructure" was, at the time, written in an architecture document and in my head. It was not expressed in any signal the agent received while working. There was no failing check, no error, no type violation. From inside the agent's loop, nothing indicated that the cheap path was forbidden.
+
+Human engineers violate written-down rules too. The difference is that a human carries a model of *why* the boundary exists, and will usually feel friction when crossing it. An agent optimising a stated objective has no such friction. It will find the shortest path to green, and if your invariant isn't on the path, it goes through it.
+
+This generalises past architecture. The same shape produced:
+
+- **Scope drift with confidence.** Asked to add one grader, an agent would also refactor an adjacent module it judged untidy. Each change defensible, the combined diff a review problem.
+- **Tests written to the implementation.** When a test failed, the agent was as willing to adjust the assertion as the code. Both make the suite green; only one is correct, and telling them apart requires knowing what the test was *for*.
+- **Plausible fabrication at the edges.** Confident references to a config key or a helper that did not exist, following a naming convention consistent enough that it read as real.
+
+## What actually helped
+
+**Encode invariants as executable checks, not prose.** This is the whole lesson. A dependency rule enforced by a lint rule or an import-boundary test is a signal inside the agent's loop; the same rule in a document is not. Anything you can't make executable, you will end up enforcing by hand.
+
+**Review by boundary, not by line count.** I read every domain-layer diff by hand regardless of size, and skimmed large mechanical diffs elsewhere. A twelve-line change in the wrong module deserves more scrutiny than four hundred lines of scaffolding. This inverts normal review instincts, which scale attention with diff size.
+
+**Delegate breadth, own depth.** Agents were genuinely excellent at consistent, tedious, wide work: scaffolding nine packages with uniform structure, wiring configuration, generating test skeletons, keeping conventions stable across thousands of lines. That work is real, and doing it by hand would have been a waste of my time. Decisions about *boundaries* — what a layer may know, what belongs in the domain, how two subsystems talk — stayed mine, because those are exactly the decisions with no local feedback signal.
+
+**Say no to green as evidence.** A passing suite means the assertions you wrote still hold. It says nothing about the properties you never encoded. With a fast agent, the gap between those two things stops being philosophical and starts producing merge candidates several times a day.
+
+## Why I find this encouraging
+
+None of the above reads to me as an argument against using agents. It's an argument that the reviewing skill is shifting.
+
+The scarce ability used to be producing correct code quickly. Increasingly it is knowing which properties of a system matter, and making those properties mechanically checkable so that speed doesn't quietly erode them. Architecture stops being documentation and becomes enforcement.
+
+Which is a strange and pleasing outcome for a project whose subject is measuring agents: the thing I learned by building it is now the thing it is designed to measure.

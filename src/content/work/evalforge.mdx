@@ -1,0 +1,102 @@
+---
+title: EvalForge
+tagline: An evaluation platform for autonomous coding agents
+summary: Coding agents ship faster than anyone can verify them. EvalForge runs the same pinned task against Cursor, Claude Code, Codex and others inside identical sandboxes, then grades the results objectively — so "which agent is better" becomes a measurement instead of an argument.
+role: Sole author and architect
+period: Jul 2026 — present
+status: In progress
+order: 1
+stack:
+  - Python 3.12
+  - FastAPI
+  - Docker
+  - PostgreSQL
+  - TypeScript
+  - Next.js
+  - pytest
+  - Vitest
+repo: https://github.com/shreyasvp26/EvalForge
+metrics:
+  - value: "4"
+    label: "architectural layers with enforced dependency direction"
+    source: "docs/architecture/backend-architecture.md §11"
+  - value: "9"
+    label: "independently versioned Python packages"
+    source: "repository layout — domain, application, infrastructure, workers, sandbox, adapters, graders, shared, api"
+  - value: "1 command"
+    label: "CI-equivalent local gate (pnpm verify)"
+    source: "package.json scripts"
+disclosure: A large share of this codebase was written by coding agents that I directed, reviewed, and corrected. Given that the project's entire subject is measuring coding agents, I'd rather tell you that up front than have you wonder. The section on what the agents got wrong is the most useful part of this write-up.
+---
+
+## The problem
+
+By mid-2026 I was using coding agents daily, and I had no idea which one was actually better at what. Neither did anyone else. The public discourse was vibes: a screenshot of one impressive completion, a thread about one catastrophic refactor, and a lot of confident conclusions drawn from a sample size of one.
+
+The obstacle is that agent runs are almost perfectly designed to be non-comparable. The same prompt hits a different model snapshot next week. The agent reads a different working tree. It has network access, so it can pull a package that didn't exist yesterday. It writes files in a different order. Run the identical task twice and you get two different diffs — so any single comparison tells you nothing durable.
+
+That reframes the problem. The interesting engineering isn't the grading logic; it's **making runs comparable at all**. EvalForge is built around one claim: if the evaluation data isn't reproducible and longitudinally stable, the scores are decoration.
+
+## Architecture
+
+The system separates *what an evaluation means* from *how it gets executed*, because those two things change at wildly different rates. The definition of a fair score is a slow-moving domain concept. The mechanics of driving a specific agent CLI change every few weeks when a vendor ships a new flag.
+
+<Diagram
+  name="evalforge-layers"
+  caption="Dependency direction is enforced inward. The domain layer has zero outbound imports — it cannot reach a database, a queue, or an HTTP client. Infrastructure implements the ports that the application layer declares, so a Postgres repository and an in-memory test double are interchangeable at the composition root."
+/>
+
+The layering is conventional hexagonal architecture, and I chose it for one concrete reason rather than as a stylistic preference: the domain rules about score comparability need to be unit-testable without Docker, without a database, and without an API key. If computing a score required booting infrastructure, I'd test it rarely, and the one thing that must never silently break is the scoring.
+
+Runtime execution is a separate concern with its own path:
+
+<Diagram
+  name="evalforge-run"
+  caption="Every run is pinned and sandboxed. The agent adapter only translates between a vendor CLI and a normalised data model — it never decides anything about scoring. Objective graders and the rubric judge produce independent signals that are combined into a domain score."
+/>
+
+Three decisions carried most of the weight.
+
+<Decision
+  choice="Run every agent inside a network-isolated Docker sandbox."
+  because="Network access is the largest single source of non-reproducibility. An agent that can install an arbitrary package version makes last month's run incomparable to today's."
+  cost="Some genuinely useful agent behaviour becomes untestable — anything that legitimately needs to fetch a dependency or read live docs. I accepted a narrower but trustworthy evaluation surface over a broad and noisy one."
+/>
+
+<Decision
+  choice="Split grading into objective graders and rubric judges, and keep them structurally separate."
+  because="Objective signals (does it build, do the tests pass, does the linter agree) are cheap, deterministic, and reproducible. Rubric judgements about code quality need a frontier model and are inherently noisier. Mixing them in one code path would let the noisy signal quietly contaminate the deterministic one."
+  cost="Two grader SDKs, two sets of tests, and a combination step that has to justify its weighting. The alternative — one 'just ask a model to score it' path — would have been a fraction of the work and worth far less."
+/>
+
+<Decision
+  choice="Treat the frontend as a pure renderer with no product logic of its own."
+  because="If the API owns the product, then the CLI, the web UI, and any future consumer all see identical truth. Score computation living in a React component would be a correctness bug waiting to happen."
+  cost="More API surface to design and version, and some UI interactions need a round trip that local state could have handled instantly."
+/>
+
+## Implementation and trade-offs
+
+**The reproducibility problem was worse than I estimated.** My first cut pinned the model and the task and assumed that was enough. It wasn't. Runs still diverged because the sandbox filesystem wasn't identical between invocations — leftover build caches from a previous run changed how long the agent took and, occasionally, what it did. Pinning the *task* is not the same as pinning the *environment*, and I only learned the difference by staring at two diffs that should have matched.
+
+**What the coding agents actually got wrong.** This is the part I'd want to be asked about in an interview, because building a tool to measure agents while using agents to build it turned out to be an unusually direct education.
+
+They were excellent at breadth: scaffolding nine packages with consistent structure, wiring config, generating test skeletons, keeping naming conventions uniform across thousands of lines. That work is real and it is tedious and I don't regret delegating it.
+
+They were consistently bad at architectural boundaries. Left unsupervised, an agent would solve a problem by importing infrastructure directly into the domain layer — because that is the shortest path to a passing test. It fixes the symptom and destroys the property the layer existed to protect. I ended up encoding the dependency rules as explicit written constraints and reviewing every domain-layer diff by hand, because that is precisely the class of error a green test suite will not catch.
+
+They were also prone to what I'd call confident scope drift: asked to add a grader, an agent would also refactor an adjacent module it found untidy. Individually reasonable, collectively a review nightmare.
+
+The generalisation I took away is that agents optimise for the stated objective and are blind to invariants nobody wrote down. That observation is now the thing EvalForge is designed to measure, which is a satisfying loop.
+
+**Where it actually stands.** The backend layers, execution engine, sandbox runtime, objective and rubric graders, and the design-system foundation are complete and covered by `pnpm verify`, which runs lint, format, typecheck, and both test suites as a single CI-equivalent gate. The product CRUD UI is in progress, and adapters beyond the first few are not written yet. I'd rather show you an honest status table than a finished-looking screenshot.
+
+<Callout tone="warn" title="Not yet a published benchmark">
+EvalForge is infrastructure for producing comparable agent evaluations. I have not published a leaderboard, because doing so responsibly needs many runs across many pinned task versions, and I haven't paid that compute bill yet. Any numbers here would be premature.
+</Callout>
+
+## Outcomes
+
+The concrete deliverable is a working platform: a FastAPI control plane over a tested domain model, a sandboxed execution path, two independent grading families, and a Next.js UI over a Storybook-documented design system. Architecture decisions are recorded as ADRs in the repository rather than living in my head.
+
+The more useful outcome is personal. I set out to learn agentic AI by building something with it instead of reading about it, and I now have a specific, defensible view of where these tools help and where they quietly damage a codebase — which is not a view I could have formed from a tutorial.

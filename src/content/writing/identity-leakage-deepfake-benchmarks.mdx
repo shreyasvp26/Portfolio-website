@@ -1,0 +1,59 @@
+---
+title: Your deepfake detector is probably cheating
+description: FaceForensics++ has an official train/val/test split. Using it as-is can still leak identities into your test set — and inflate your AUC in a way that looks like real accuracy right up until deployment.
+date: "2026-08-04"
+tags:
+  - Machine learning
+  - Evaluation
+  - Computer vision
+---
+
+While building a deepfake detection and attribution system, I hit a result that should have made me happy and instead made me suspicious. Validation metrics were strong and improving smoothly. That is usually the point at which you should stop celebrating and go looking for the leak.
+
+The leak was identity.
+
+## How the leak works
+
+FaceForensics++ is built from around a thousand real YouTube videos. The manipulated videos are generated *from* those real videos: a Deepfakes clip takes a source identity and a target identity, and produces a fake of one wearing the other's face. Face2Face, FaceSwap, and NeuralTextures do their own variations on the same premise.
+
+The critical structural fact is that **a single real person appears in many videos** — the pristine original, plus every manipulated clip that used them as a source or a target.
+
+Now split that dataset naively by video. Person A's pristine video lands in train. A fake built from Person A lands in test. Nothing about that split looks wrong: no video file appears in two partitions, no frame is duplicated, and every sanity check you'd casually write comes back green.
+
+But your model has now seen Person A's face, skin texture, lighting conditions, camera sensor noise, and the compression signature of their specific upload — during training. At test time it sees that same face again. It does not need to learn anything about manipulation artefacts to do well. It can partly learn *this footage looks familiar*, and familiarity correlates with the label in a way that will not survive contact with a video of someone it has never seen.
+
+## Why it is hard to notice
+
+This is the property that makes identity leakage genuinely dangerous rather than merely annoying: it does not look like overfitting.
+
+Classic overfitting announces itself. Training loss keeps falling while validation loss turns upward, and the gap is visible in any training curve. Identity leakage produces no such gap, because the leaked signal is present in *both* partitions. Train and test are drawn from the same identity pool, so the model's shortcut works equally well on both. Your curves look textbook. Your test metric looks like a held-out result. It is, in the sense that matters, a training metric wearing a disguise.
+
+You find out at deployment, on faces from a different source, when performance collapses and you have no diagnostic explaining why.
+
+## The fix
+
+Partition by identity, not by video. Every video derived from a given real source ID must land in exactly one partition.
+
+The implementation is fiddlier than it sounds, because manipulated clips involve *pairs* of identities. A fake made from source A onto target B is contaminated if either A or B appears in another partition. So the constraint isn't "assign each identity to a split" — it's closer to a connected-components problem over a graph where identities are nodes and manipulated videos are edges joining them. Any two identities linked by a fake must travel together.
+
+Two consequences follow, and both are worth stating plainly because they make the honest version look worse:
+
+**Your splits get lumpier.** You no longer control partition sizes precisely, since identity groups come in whatever sizes the pairings dictate. A clean 70/15/15 becomes approximately 70/15/15.
+
+**Your headline number goes down.** Mine did. That is the entire point — the previous number was partly measuring recognition rather than detection. A lower honest metric is strictly more useful than a higher dishonest one, because only one of them predicts what happens on real inputs.
+
+## The generalisation
+
+Deepfake datasets are a vivid instance of a broad failure. The general shape is: **your dataset contains a grouping structure, and your split ignored it.**
+
+Medical imaging leaks by patient — the same person's scans in train and test, and the model learns the patient rather than the pathology. Speech leaks by speaker. Recommender systems leak by user. Time series leak by anything downstream of the split boundary. Satellite imagery leaks by geography and season.
+
+The question worth asking before you trust any evaluation number is not "did I hold out data?" It is: **what is the unit my model could memorise instead of learning the task, and is that unit fully contained on one side of my split?**
+
+If you cannot answer that, your metric is not measuring what you think it is. The fastest way I know to check is adversarial: try to explain your good result *without* the model having learned anything. If you can construct that story easily, you have found your leak.
+
+## A note on reporting
+
+Because identity-safe splitting is not the default, published numbers on FaceForensics++ are frequently not comparable with each other. Some papers use the official splits, some construct identity-safe ones, and the difference can be several points of AUC — which is larger than the margin most papers claim as an improvement.
+
+So: state your splitting protocol explicitly, and treat a benchmark number without a stated protocol as an unverified claim rather than a baseline to beat. I'd extend that to your own work. My detection and attribution numbers stayed `TBD` in the repository until a measured run existed, which felt uncomfortable to publish and was still better than the alternative.

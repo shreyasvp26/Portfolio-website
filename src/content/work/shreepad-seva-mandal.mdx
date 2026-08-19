@@ -1,0 +1,64 @@
+---
+title: Shreepad Seva Mandal
+tagline: Owning the iOS release pipeline for a nonprofit app with real users
+summary: A three-engineer team, a cross-platform app, and real devotees who notice when push notifications stop working. I own the iOS release path end to end — TestFlight distribution, App Store submission and review, and the production bugs in authentication, notifications, and platform parity that only appear once strangers are using your build.
+role: Software Developer & iOS Operations Lead
+period: Apr 2026 — Present
+status: In production
+order: 3
+stack:
+  - iOS
+  - Android
+  - Firebase Auth
+  - Push notifications
+  - TestFlight
+  - App Store Connect
+metrics:
+  - value: "3"
+    label: "engineer cross-platform team"
+  - value: "2 platforms"
+    label: "kept at behavioural parity — I ship iOS and contribute Android fixes"
+  - value: "End to end"
+    label: "release ownership: build, beta distribution, submission, review, phased rollout"
+---
+
+## The problem
+
+Every project above this one is mine. This one isn't, and that is the point of including it.
+
+Shreepad Seva Mandal is a nonprofit organisation whose app is used by an actual community of people who are not engineers, do not read changelogs, and cannot be asked to reinstall a build. Three of us maintain it across iOS and Android. There is no QA team, no release manager, and no staging population large enough to catch everything — so the failure modes are the ones you only meet in production, on devices you don't own, in conditions you didn't anticipate.
+
+Student projects almost never teach this. A course project is done when it works on your laptop. An app in the store is never done, and the skill it demands is not writing features — it's not breaking things for people who trust you.
+
+## The release pipeline
+
+I own the path from a merged change to a user's phone. On iOS that path has a gatekeeper you cannot argue with, which changes how you work.
+
+<Diagram
+  name="ssm-release"
+  caption="The iOS release path. App Store review is a hard, human-latency gate — a mistake caught after submission costs days, not minutes — so verification has to happen before the archive is uploaded, not after."
+/>
+
+The asymmetry is what shapes everything. On the web, a bad deploy is a rollback. On iOS, a bad release is a new build, a new submission, a new review queue, and a phased rollout you have to nurse. That single fact pushes cost backwards through the whole process: the cheapest place to catch a bug is before the upload, so the TestFlight stage carries the weight that a rollback button carries elsewhere.
+
+<Decision
+  choice="Treat TestFlight external testing as a mandatory gate rather than an optional courtesy."
+  because="Review latency makes post-submission fixes expensive in wall-clock days. Real devices in testers' hands surface the OS-version and device-specific problems that a simulator will not."
+  cost="Every release carries a built-in delay before it can even be submitted. Shipping a small fix takes days rather than hours, which is a genuinely frustrating trade — and still cheaper than an expedited-review request against a broken build."
+/>
+
+## Implementation and trade-offs
+
+**Authentication.** Auth bugs are the worst class of production bug in a community app, because a user who cannot log in has no path to tell you about it — they simply stop opening the app, and you never hear from them. Failures here are silent by construction, which means you cannot rely on user reports and have to reason about the state machine directly: what happens to a session that expires while the app is backgrounded, what happens on a device where the token was invalidated server-side, what happens when the same person signs in on a second device.
+
+**Push notifications, which are two systems pretending to be one.** This was the most instructive part of the work. A single feature — "notify users" — is implemented by two entirely different platform mechanisms with different permission models, different payload shapes, different delivery guarantees, and different silent-failure modes. iOS requires explicit user permission that can be revoked in Settings without the app being told in any obvious way, and a token that rotates. Notifications are also the easiest thing in mobile to *believe* you have fixed, because a successful send is not a successful delivery, and nothing errors when a message quietly goes nowhere.
+
+**Platform parity is a real engineering constraint, not a QA checkbox.** I am the iOS lead, but I contribute fixes directly to the Android codebase, and I'd argue that's necessary rather than generous. Parity bugs are almost never "the Android version is broken" — they are "the two platforms disagree", and you cannot diagnose a disagreement from one side of it. Fixing the symptom only on iOS produces two codebases that drift, and drift is how a small inconsistency becomes two divergent products maintained by three people.
+
+<Callout tone="insight" title="What this project taught me that the others didn't">
+My solo projects taught me architecture and modelling. This one taught me the cost of being wrong in front of people who did not consent to being test subjects — and that a large fraction of production engineering is designing so that the expensive mistakes are the ones that are hard to make.
+</Callout>
+
+## Outcomes
+
+The app is live and maintained, releases go out through a pipeline I own end to end, and production issues in authentication, notifications, and cross-platform behaviour have been diagnosed and fixed rather than worked around. The organisation gets a working app; I got the experience of shipping software where the users are strangers and the review gate has no undo.

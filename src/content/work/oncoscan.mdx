@@ -1,0 +1,79 @@
+---
+title: OncoScan
+tagline: A deployed skin-lesion screening tool that shipped the smaller model on purpose
+summary: A dermoscopy screening tool trained on HAM10000. I trained a four-model ensemble that scored highest, then shipped a single EfficientNet-B0 with patient-metadata fusion instead — because for a free-tier public demo, latency and cold-start cost mattered more than the last point of accuracy.
+role: Sole author
+period: Jun 2026 — Jul 2026
+status: Deployed
+order: 2
+stack:
+  - Python
+  - PyTorch
+  - EfficientNet
+  - FastAPI
+  - React
+  - Vite
+  - Vercel
+repo: https://github.com/shreyasvp26/Skin-Cancer-Detection-Using-Deep-Transfer-Learning
+demo: https://skin-cancer-detection-using-deep-tr.vercel.app
+metrics:
+  - value: "1408-d"
+    label: "fused feature vector — 1280-d image features + 128-d metadata"
+    source: "backend/model — EfficientNet-B0 backbone concatenated with metadata MLP output"
+  - value: "Live"
+    label: "public deployment: React on Vercel, FastAPI inference service"
+    source: "skin-cancer-detection-using-deep-tr.vercel.app"
+  - value: "Not calibrated"
+    label: "classification threshold — default 0.5, configurable, never validated clinically"
+    source: "CLASSIFICATION_THRESHOLD env var, documented in README limitations"
+disclosure: OncoScan is a research and educational tool. It is not a medical device, is not FDA-cleared, and has not been validated for clinical use. The README says the same thing, and the UI says it to every user before showing a result.
+---
+
+## The problem
+
+Melanoma survival depends heavily on how early the lesion is looked at, and the practical bottleneck is often not diagnosis but triage — the gap between a person noticing a mole and a dermatologist ever seeing it. Dermoscopic image classification is a well-studied problem with a good public dataset in HAM10000, which makes it a genuinely useful place to learn how a deep-learning model behaves once you have to *deploy* it rather than just report a validation number.
+
+I want to be precise about scope, because medical ML attracts overclaiming. OncoScan is not a diagnostic tool and I am not qualified to build one. It is a screening demonstrator, and the interesting engineering turned out to have very little to do with squeezing out accuracy.
+
+## Architecture
+
+The system is deliberately boring: a React single-page app on Vercel, and a FastAPI service that owns the model. The one non-obvious modelling choice is that the network consumes patient metadata alongside the image.
+
+<Diagram
+  name="oncoscan"
+  caption="Image features and patient metadata are learned in separate branches and fused before a single sigmoid logit. Age and sex genuinely inform the prediction; anatomical site and skin tone are collected for display only and are not fed to the current model."
+/>
+
+Age and sex are real clinical priors — the base rate of malignancy differs meaningfully across them — so a model that sees only pixels is discarding free signal. A 1280-dimensional image embedding is concatenated with a 128-dimensional metadata embedding and passed to a small fusion classifier.
+
+I collect anatomical site and skin tone in the form but do **not** feed them to the model, and the README says so explicitly. Half-implemented inputs that silently do nothing are how ML demos become misleading, so I'd rather document the gap than hide it behind a form field.
+
+<Decision
+  choice="Refuse to start the server if the weight file is missing or architecturally incompatible."
+  because="A silent fallback to random weights in a medical-adjacent tool is the worst possible failure mode: it produces confident, plausible, meaningless output. A server that won't boot is loudly broken, which is far safer."
+  cost="Deployment is less forgiving — a bad weights path takes the whole service down instead of degrading. For this use case that's the correct direction to fail."
+/>
+
+## Implementation and trade-offs
+
+**The trade-off I care most about is the one I lost on paper.** I trained a weighted ensemble of EfficientNet-B1 and B4, DenseNet121, and ResNet50, and it reached roughly 92% classification accuracy — higher than any single backbone I tried. It is also the version I chose not to ship.
+
+Four backbones means four sets of weights to load, four forward passes per image, and a memory footprint that does not fit comfortably in a free-tier container. On a cold start, users would wait through multi-hundred-megabyte model loading before their first result. A single EfficientNet-B0 with metadata fusion gave up a small amount of accuracy and bought back cold-start time, memory headroom, and a deployment I can actually keep running at zero cost.
+
+For a *screening triage demonstrator* whose entire value proposition is "a person can try this in ten seconds", a model nobody waits around for is worth more than a model with a better confusion matrix. If this were a clinical decision-support system with a real infrastructure budget and a regulatory pathway, I would ship the ensemble and the reasoning would invert completely. The right answer depended on the deployment constraints, not on the leaderboard.
+
+<Callout tone="warn" title="Verifiability gap I'm closing">
+The ensemble experiment currently lives in a local notebook that is not in the repository, so the ~92% figure is not independently checkable — which by my own standard means you shouldn't take my word for it. The deployed single-backbone model, its weights contract, and its documented limitations are all in the repo. I'm pushing the ensemble training notebook so the comparison is reproducible.
+</Callout>
+
+**The threshold is the honest weak point.** A binary classifier behind a sigmoid needs a decision threshold, and mine defaults to `0.5` because that is the arithmetic default — not because anyone validated it. In a screening context the cost of a false negative and a false positive are wildly asymmetric: telling someone their melanoma looks benign is far worse than sending them for an unnecessary check. The correct threshold is therefore almost certainly not `0.5`, and choosing it properly requires a validation set and a stated tolerance for missed positives.
+
+I made the threshold an environment variable rather than a constant so it can be recalibrated without a code change, and I documented in the README that it has not been calibrated. Performance across Fitzpatrick skin-tone types is also unvalidated, which is a well-documented fairness failure mode in dermatology datasets and one I can't claim to have solved.
+
+**Grad-CAM is disabled in the current release.** I had heatmap explainability working during development, but the version that survived into the deployed build produced attribution maps I wasn't confident were faithful, and a misleading heatmap over a medical image is worse than no heatmap — it manufactures trust. It's off until I can verify it.
+
+## Outcomes
+
+There is a live, public deployment: upload a dermoscopic image, enter age and sex, get a screening result with an explicit disclaimer. The backend exposes a `/health` endpoint that reports model status, a validation script confirms the weights load correctly, and configuration is environment-driven with documented defaults.
+
+The README carries a "Known Limitations" section listing four specific things the project does not do. That section is the part I'm most confident about — a medical-adjacent ML project without one should not be trusted.
