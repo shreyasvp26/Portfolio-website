@@ -1,4 +1,4 @@
-# shreyas-portfolio
+# Shreyas Patil's Portfolio Website
 
 Personal site and technical case-study collection for Shreyas Patil.
 
