@@ -113,7 +113,7 @@ function Arrow({
 
 function RecoveryOsPipeline() {
   return (
-    <Frame viewBox="0 0 660 380">
+    <Frame viewBox="0 0 660 420">
       <title>RecoveryOS recovery pipeline</title>
 
       <Box x={230} y={12} w={200} title="Payment Provider" sub="Stripe webhook" />
@@ -131,10 +131,10 @@ function RecoveryOsPipeline() {
 
       <Box x={80} y={292} w={200} title="Economic Guardrails" sub="cost vs. recovered revenue" />
       <Box x={380} y={292} w={200} title="Safety / Eligibility" sub="concurrency + state checks" />
-      <Arrow d="M 180 338 L 270 358" />
-      <Arrow d="M 480 338 L 390 358" />
+      <Arrow d="M 180 338 L 260 358" />
+      <Arrow d="M 480 338 L 400 358" />
 
-      <Box x={210} y={340} w={240} h={34} title="Recovery Decision → Execute → Observe" accent />
+      <Box x={150} y={362} w={360} h={34} title="Recovery Decision → Execute → Observe" accent />
     </Frame>
   );
 }
