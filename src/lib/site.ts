@@ -8,7 +8,7 @@ export const site = {
   location: "Pune, India",
   email: "shreyasvp2605@gmail.com",
   url: "https://shreyas-portfolio.vercel.app",
-  resumePath: "/Shreyas_Patil_Resume.pdf",
+  resumePath: "/112315129_Shreyas_Patil.pdf",
   socials: {
     github: "https://github.com/shreyasvp26",
     linkedin: "https://www.linkedin.com/in/shreyas-patil-005a6830a/",
