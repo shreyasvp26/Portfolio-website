@@ -23,11 +23,12 @@ export default function AboutPage() {
             trustworthy.
           </p>
           <p>
-            Right now I&apos;m learning agentic AI the only way I find durable: by building something
-            real with it and paying attention to where it breaks. That project is{" "}
-            <Link href="/work/evalforge">EvalForge</Link>, a platform for evaluating autonomous coding
-            agents, and building it with coding agents has taught me more about their failure modes
-            than any amount of reading would have.
+            Right now I&apos;m going deep on distributed-systems engineering by building{" "}
+            <Link href="/work/recoveryos">RecoveryOS</Link>, a payment recovery system that treats
+            failed payments as structured decisions rather than blind retries. The hardening work —
+            idempotency under concurrency, conflicting payload detection, fail-closed auth, economic
+            guardrails — taught me more about what makes infrastructure trustworthy than any amount
+            of reading would have.
           </p>
 
           <h2>How I think about building things</h2>

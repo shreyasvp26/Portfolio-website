@@ -8,7 +8,7 @@ import { Section } from "@/components/ui";
 export const metadata: Metadata = {
   title: "Work",
   description:
-    "Technical case studies: an evaluation platform for coding agents, a deployed skin-lesion screening tool, and production iOS release ownership.",
+    "Technical case studies: a payment recovery system with adversarial hardening, a deployed skin-lesion screening tool, and production iOS release ownership.",
 };
 
 export default function WorkIndex() {

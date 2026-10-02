@@ -111,82 +111,30 @@ function Arrow({
   );
 }
 
-function EvalForgeLayers() {
+function RecoveryOsPipeline() {
   return (
-    <Frame viewBox="0 0 660 348">
-      <title>EvalForge layered architecture</title>
+    <Frame viewBox="0 0 660 380">
+      <title>RecoveryOS recovery pipeline</title>
 
-      <Box x={92} y={16} w={266} title="apps/web" sub="Next.js — renderer over the API" />
-      <Box x={374} y={16} w={266} title="apps/api" sub="FastAPI control plane" />
-      <Arrow d="M 358 39 L 370 39" />
+      <Box x={230} y={12} w={200} title="Payment Provider" sub="Stripe webhook" />
+      <Arrow d="M 330 58 L 330 78" />
 
-      <Box
-        x={92}
-        y={104}
-        w={548}
-        title="application"
-        sub="use cases · unit of work · ports (auth, queue, events)"
-      />
-      <Arrow d="M 507 62 L 507 100" />
+      <Box x={180} y={82} w={300} title="Event Ingestion" sub="idempotency + conflict check" accent />
+      <Arrow d="M 330 128 L 330 148" />
 
-      <Box
-        x={92}
-        y={192}
-        w={548}
-        title="domain"
-        sub="aggregates · invariants · domain events — zero outbound imports"
-        accent
-      />
-      <Arrow d="M 366 150 L 366 188" />
+      <Box x={200} y={152} w={260} title="Failure Interpretation" sub="context + failure type" />
+      <Arrow d="M 330 198 L 330 218" />
 
-      <Box
-        x={92}
-        y={282}
-        w={548}
-        title="infrastructure"
-        sub="Postgres · queue · event bus · composition root"
-      />
+      <Box x={200} y={222} w={260} title="Recovery Policy" sub="eligibility + rules" />
+      <Arrow d="M 280 268 L 200 288" />
+      <Arrow d="M 380 268 L 460 288" />
 
-      {/* Routed through the left gutter so it never crosses a box. */}
-      <Arrow d="M 56 300 L 56 127 L 88 127" dashed />
-      <text
-        x={40}
-        y={214}
-        textAnchor="middle"
-        fontSize="10"
-        fill={C.sub}
-        transform="rotate(-90 40 214)"
-      >
-        implements ports
-      </text>
-    </Frame>
-  );
-}
+      <Box x={80} y={292} w={200} title="Economic Guardrails" sub="cost vs. recovered revenue" />
+      <Box x={380} y={292} w={200} title="Safety / Eligibility" sub="concurrency + state checks" />
+      <Arrow d="M 180 338 L 270 358" />
+      <Arrow d="M 480 338 L 390 358" />
 
-function EvalForgeRun() {
-  return (
-    <Frame viewBox="0 0 660 320">
-      <title>EvalForge evaluation run lifecycle</title>
-      <Box x={20} y={16} w={186} title="Eval case" sub="versioned + pinned" />
-      <Box x={236} y={16} w={166} title="Queue" sub="durable job" />
-      <Box x={432} y={16} w={208} title="Execution worker" sub="lifecycle + events" />
-      <Arrow d="M 206 39 L 232 39" />
-      <Arrow d="M 402 39 L 428 39" />
-
-      <Box x={432} y={110} w={208} h={52} title="Docker sandbox" sub="agent adapter, no network" accent />
-      <Arrow d="M 536 62 L 536 106" />
-
-      <Box x={236} y={110} w={166} h={52} title="Artifacts" sub="diff · logs · trace" />
-      <Arrow d="M 428 136 L 406 136" />
-
-      <Box x={20} y={214} w={296} title="Objective graders" sub="tests, build, static checks" />
-      <Box x={344} y={214} w={296} title="Rubric judge" sub="frontier model + rubric" />
-      <Arrow d="M 300 166 L 220 210" />
-      <Arrow d="M 340 166 L 460 210" />
-
-      <Box x={190} y={278} w={280} h={34} title="Domain score — comparable across runs" accent />
-      <Arrow d="M 168 260 L 260 274" />
-      <Arrow d="M 492 260 L 400 274" />
+      <Box x={210} y={340} w={240} h={34} title="Recovery Decision → Execute → Observe" accent />
     </Frame>
   );
 }
@@ -238,8 +186,7 @@ function SsmRelease() {
 }
 
 export const DIAGRAMS = {
-  "evalforge-layers": EvalForgeLayers,
-  "evalforge-run": EvalForgeRun,
+  "recoveryos-pipeline": RecoveryOsPipeline,
   oncoscan: OncoScan,
   "ssm-release": SsmRelease,
 } as const;

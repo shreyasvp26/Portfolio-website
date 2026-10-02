@@ -1,0 +1,91 @@
+---
+title: RecoveryOS
+tagline: Payment recovery as a decision problem, not a retry loop
+summary: When a payment fails, the default instinct is to retry it. RecoveryOS treats recovery as a structured decision — evaluating the failure context, applying policy and economic constraints, executing a safe action, and recording the entire lifecycle so the system can explain what it did and why.
+role: Sole author and architect
+period: Aug 2026 — present
+status: Engine complete
+order: 1
+stack:
+  - Python 3.11
+  - FastAPI
+  - SQLAlchemy
+  - Pydantic
+  - Stripe
+  - pytest
+repo: https://github.com/shreyasvp26/RecoveryOS
+metrics:
+  - value: "219"
+    label: "commits across 25 hardening phases"
+    source: "github.com/shreyasvp26/RecoveryOS — commit history"
+  - value: "Idempotent"
+    label: "duplicate delivery, conflicting payloads, concurrent races — all handled"
+    source: "backend/tests — adversarial regression suite"
+  - value: "Fail-closed"
+    label: "missing auth config → protected endpoints refuse to serve, never silently degrade"
+    source: "backend/app/auth.py — fail-closed guard"
+disclosure: This project was built with significant help from coding agents that I directed and reviewed. The hardening phases — especially the adversarial concurrency and idempotency work — were where I learned the most, because agents are excellent at generating happy-path code and reliably blind to the distributed-system failure modes that matter in payment infrastructure.
+---
+
+## The problem
+
+Payment failures in real systems are not simple errors. A failed charge can cascade into lost revenue, unnecessary processing costs, duplicate recovery attempts, and customer trust damage. The conventional response — retry the payment — sounds reasonable until you look at the failure modes it creates.
+
+A blind retry doesn't ask whether retrying is safe, whether it's economically rational, whether someone else is already retrying the same payment concurrently, or whether the retry itself will cost more than the revenue it recovers. It definitely doesn't record why it made that choice. In a distributed payment system where webhooks can arrive twice, payloads can conflict, and multiple requests can race against the same payment, "just retry it" is a recipe for producing outcomes nobody can explain after the fact.
+
+I wanted to build something that takes the full problem seriously: interpret the failure, evaluate whether recovery is appropriate, check the economics, execute safely, observe what actually happened, and make the whole chain auditable. Not because I needed a payment recovery system — but because payment infrastructure is one of the few domains where idempotency, concurrency safety, and economic constraints are all load-bearing requirements at the same time, and I wanted to learn how those properties interact under pressure.
+
+## Architecture
+
+RecoveryOS separates recovery into stages that change at different rates. Failure interpretation is domain knowledge — it evolves slowly. Policy evaluation is business logic that a product team might change weekly. Execution mechanics (Stripe API calls, webhook handling) change whenever the provider ships a new API version. Keeping these apart means changing one doesn't silently break the others.
+
+<Diagram
+  name="recoveryos-pipeline"
+  caption="The recovery pipeline. A webhook enters through idempotency and conflict checks, gets interpreted and evaluated against policy and economic constraints, produces a recovery decision, executes it, and records the observed outcome. Every stage is independently testable."
+/>
+
+Three decisions shaped the system more than any others.
+
+<Decision
+  choice="Treat idempotency as an architectural property, not a convenience feature."
+  because="In webhook-driven payment systems, duplicate delivery isn't an edge case — it's expected behaviour. Stripe will retry failed webhook deliveries, infrastructure failures can cause reprocessing, and nothing prevents the same event from arriving twice within milliseconds. If the system doesn't handle this structurally, duplicate recovery attempts are inevitable."
+  cost="Every event ingestion path has to go through an idempotency gate before any business logic runs. That's more code at the boundary and a harder-to-test interaction between the deduplication layer and the recovery engine. But the alternative — discovering duplicate recoveries in production — is far more expensive."
+/>
+
+<Decision
+  choice="Detect and reject conflicting payloads rather than silently overwriting."
+  because="Same delivery ID + different payload is a data integrity violation, not a retry. If the system accepts the second version without complaint, the original event's context is lost, and any recovery decision made on the first payload is now backed by evidence that no longer exists. Rejecting the conflict loudly is the only option that preserves auditability."
+  cost="A rejected conflict requires manual investigation. There's no automated resolution, by design — because automating the resolution of a data integrity issue means deciding which version of reality to trust, and I don't think that decision should be silent."
+/>
+
+<Decision
+  choice="Evaluate economic constraints before executing any recovery action."
+  because="A technically possible recovery is not automatically worth doing. If the processing cost of a retry exceeds the revenue at stake, the recovery destroys value. The system needs to know this before it acts, not after."
+  cost="Requires maintaining cost configuration and spend tracking per recovery path. More operational surface. But 'we retried a $2 payment fifteen times at $0.30 per attempt' is the kind of outcome this is specifically designed to prevent."
+/>
+
+## Implementation and trade-offs
+
+**Concurrency was the hardest problem.** The happy path — one webhook, one recovery — works fine with straightforward sequential code. The real world sends two webhooks for the same payment within milliseconds, and if both reach the recovery engine before either commits, you get two recovery outcomes for one failure. This is not a theoretical concern; it's the first thing that breaks when you run concurrent ingestion tests.
+
+The fix isn't a lock at the application layer — it's ensuring that the database transaction itself prevents the race. But getting the transaction boundaries right required thinking carefully about where the idempotency check, the policy evaluation, and the recovery execution all happen relative to the commit. An agent-generated first pass put the idempotency check outside the transaction, which meant two concurrent requests could both pass the check and both proceed to recovery. The test caught it, but only because I'd written the concurrent test before the implementation — not after.
+
+**What the agents got wrong, specifically.** This is the part of the project I learned the most from. Agents are excellent at generating the boilerplate of a FastAPI application: routes, schemas, CRUD operations, test fixtures. They're reliably bad at the properties that make payment infrastructure trustworthy.
+
+They would implement an idempotency check that works perfectly in sequential tests and fails under concurrency. They would add authentication middleware that falls back to allowing unauthenticated access when the auth configuration is missing — which means a misconfigured deployment silently becomes an open API. They would observe the execution of a recovery action and report "success" based on the absence of an exception, without checking whether the action actually produced the expected state change.
+
+Each of these is a reasonable local optimisation that destroys a system-level invariant. The agents aren't wrong in any way a linter could catch — the code compiles, the tests pass, the happy path works. The failure is in the properties that nobody wrote down: "auth must fail closed", "idempotency must hold under concurrency", "outcome observation must verify state, not just catch exceptions". That observation — that agents optimise for stated objectives and are blind to unstated invariants — is the most transferable thing I got from this project.
+
+<Callout tone="warn" title="Frontend is scaffolded, not shipped">
+RecoveryOS has a frontend directory with an initial scaffold, but the operational dashboard is not built out. The system's value is in the backend recovery engine, the policy evaluation, and the hardening work. I'd rather be honest about what's complete than screenshot a landing page.
+</Callout>
+
+**The 25-phase hardening cycle is the real deliverable.** The initial implementation took a fraction of the time. The adversarial regression suite — testing duplicate delivery, conflicting payloads, concurrent ingestion, concurrent recovery execution, economic constraint violations, fail-closed auth, webhook retry loops, and outcome observation correctness — took the rest. Each phase found real bugs. The test suite is the evidence that those bugs are fixed and stay fixed.
+
+## Outcomes
+
+The concrete deliverable is a FastAPI backend with a recovery engine that handles the failure modes real payment infrastructure encounters: duplicate webhooks, conflicting payloads, concurrent races, economic constraints, and silent auth degradation. The test suite covers these adversarially, not just on the happy path.
+
+The recovery lifecycle is fully auditable — every decision records what was evaluated, what was decided, and what was observed after execution. Recovery scenarios can be replayed against the same event context and policy configuration, which means "why did the system do that?" is always answerable.
+
+What I actually got from building this is a concrete understanding of how distributed-system properties like idempotency and concurrency safety interact with domain constraints like economic guardrails and audit requirements — and a specific, tested opinion on where coding agents help and where they quietly undermine the properties that matter most.

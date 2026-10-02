@@ -4,7 +4,7 @@ export const site = {
   role: "Software Engineer",
   // Kept deliberately concrete: specialty + current status, above the fold.
   positioning:
-    "Final-year B.Tech CSE at IIIT Pune. I build applied ML systems on a core-CS foundation, and I'm going deep on agentic AI by building evaluation infrastructure for coding agents.",
+    "Final-year B.Tech CSE at IIIT Pune. I build applied ML systems on a core-CS foundation, and I'm going deep on distributed-systems engineering by building payment recovery infrastructure.",
   location: "Pune, India",
   email: "shreyasvp2605@gmail.com",
   url: "https://shreyas-portfolio.vercel.app",
@@ -130,18 +130,11 @@ export type SideProject = {
 
 export const sideProjects: SideProject[] = [
   {
-    name: "Pathfinding Analysis Engine",
+    name: "EvalForge",
     blurb:
-      "SOLID-compliant C++17 engine that decouples three solvers (A*, Dijkstra, BFS) from four heuristics behind pure-virtual interfaces, with 44 Catch2 cases, a clean ASan/UBSan build, and reproducible benchmarks rendered to an HTML dashboard.",
-    stack: ["C++17", "CMake", "Catch2", "ASan/UBSan", "CI"],
-    repo: "https://github.com/shreyasvp26/Pathfinding-analysis-engine-with-Heuristic-Visualization",
-  },
-  {
-    name: "ArcticOps",
-    blurb:
-      "Multitenant cold-chain logistics system built as team lead under hackathon time pressure; reached the Cyber Cypher 5.0 finals.",
-    stack: ["Next.js", "TypeScript", "Node.js", "Express"],
-    repo: "https://github.com/shreyasvp26/ArcticOps-Multitenant-Cold-Chain-Supply-Logistics-System",
+      "Evaluation platform for autonomous coding agents — runs the same pinned task against Cursor, Claude Code, Codex and others inside identical Docker sandboxes, then grades the results objectively. Hexagonal architecture with nine independently versioned Python packages.",
+    stack: ["Python", "FastAPI", "Docker", "PostgreSQL", "Next.js", "pytest"],
+    repo: "https://github.com/shreyasvp26/EvalForge",
   },
   {
     name: "Deepfake Detection & Attribution Suite",

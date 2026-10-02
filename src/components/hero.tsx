@@ -4,7 +4,7 @@ import { ButtonLink } from "./ui";
 import { Reveal } from "./motion";
 
 const FACTS = [
-  { k: "Focus", v: "Applied ML · Agentic AI" },
+  { k: "Focus", v: "Applied ML · Systems" },
   { k: "Foundation", v: "Core CS · DSA" },
   { k: "Currently", v: "iOS lead, shipped app" },
   { k: "Graduating", v: "May 2027" },
@@ -36,8 +36,8 @@ export function Hero({ primaryHref }: { primaryHref: string }) {
           Final-year B.Tech CSE at{" "}
           <span className="text-text">IIIT Pune</span>. I build applied ML systems on a core-CS
           foundation, and I&apos;m going deep on{" "}
-          <span className="grad-accent-text font-medium">agentic AI</span> by building evaluation
-          infrastructure for coding agents.
+          <span className="grad-accent-text font-medium">distributed-systems engineering</span> by building
+          payment recovery infrastructure.
         </p>
       </Reveal>
 
