@@ -4,6 +4,9 @@ import { notFound } from "next/navigation";
 import { ArrowLeft, ExternalLink as ExternalIcon } from "lucide-react";
 import { GithubIcon } from "@/components/brand-icons";
 import { getCaseStudies, getCaseStudy } from "@/lib/content";
+import { caseStudyJsonLd, pageMetadata } from "@/lib/seo";
+import { site } from "@/lib/site";
+import { JsonLd } from "@/components/json-ld";
 import { Mdx } from "@/components/mdx";
 import { MetricStat, StatusBadge, Tag } from "@/components/ui";
 
@@ -17,11 +20,18 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const doc = getCaseStudy(slug);
   if (!doc) return {};
-  return {
+  return pageMetadata({
     title: `${doc.meta.title} — ${doc.meta.tagline}`,
     description: doc.meta.summary,
-    openGraph: { title: doc.meta.title, description: doc.meta.summary, type: "article" },
-  };
+    path: `/work/${slug}`,
+    type: "article",
+    publishedTime: doc.meta.published,
+    modifiedTime: doc.meta.updated,
+    authors: [site.name],
+    tags: doc.meta.stack,
+    keywords: [doc.meta.title, ...doc.meta.stack, site.name],
+    ogImage: `/work/${slug}/opengraph-image`,
+  });
 }
 
 export default async function CaseStudyPage({ params }: Props) {
@@ -33,13 +43,16 @@ export default async function CaseStudyPage({ params }: Props) {
 
   return (
     <article className="py-12 sm:py-16">
-      <Link
-        href="/work"
-        className="inline-flex items-center gap-1.5 font-mono text-xs text-faint transition-colors hover:text-muted"
-      >
-        <ArrowLeft className="size-3.5" aria-hidden />
-        All work
-      </Link>
+      <JsonLd data={caseStudyJsonLd(meta)} />
+      <nav aria-label="Breadcrumb">
+        <Link
+          href="/work"
+          className="inline-flex items-center gap-1.5 font-mono text-xs text-faint transition-colors hover:text-muted"
+        >
+          <ArrowLeft className="size-3.5" aria-hidden />
+          All work
+        </Link>
+      </nav>
 
       <header className="mt-7">
         <div className="flex flex-wrap items-center gap-3">
@@ -67,10 +80,11 @@ export default async function CaseStudyPage({ params }: Props) {
                 href={meta.repo}
                 target="_blank"
                 rel="noreferrer noopener"
+                aria-label={`View ${meta.title} source code on GitHub`}
                 className="inline-flex items-center gap-2 rounded-lg border border-border-strong bg-surface/50 px-4 py-2 text-sm text-muted backdrop-blur-sm transition-colors hover:border-accent/50 hover:text-text"
               >
                 <GithubIcon className="size-4" />
-                Source
+                GitHub repository
               </a>
             ) : null}
             {meta.demo ? (
@@ -78,6 +92,7 @@ export default async function CaseStudyPage({ params }: Props) {
                 href={meta.demo}
                 target="_blank"
                 rel="noreferrer noopener"
+                aria-label={meta.demoLabel ? `${meta.demoLabel} for ${meta.title}` : `Open live demo of ${meta.title}`}
                 className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-accent-3 via-accent to-accent-2 px-4 py-2 text-sm font-medium text-[#05050a] shadow-[0_6px_28px_-10px] shadow-accent/60 transition-shadow hover:shadow-[0_10px_36px_-10px] hover:shadow-accent/70"
               >
                 <ExternalIcon className="size-4" aria-hidden />

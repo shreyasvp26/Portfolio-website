@@ -1,21 +1,32 @@
 import type { Metadata } from "next";
 import { getCaseStudies } from "@/lib/content";
+import { pageMetadata, workIndexJsonLd } from "@/lib/seo";
 import { sideProjects } from "@/lib/site";
 import { CaseStudyCard, SideProjectRow } from "@/components/project-card";
+import { JsonLd } from "@/components/json-ld";
 import { Reveal } from "@/components/motion";
 import { Section } from "@/components/ui";
 
-export const metadata: Metadata = {
+const WORK_DESCRIPTION =
+  "Technical case studies: RecoveryOS payment recovery engine with adversarial hardening, OncoScan deployed skin-lesion screening tool, and Shreepad Seva Mandal production iOS release ownership.";
+
+export const metadata: Metadata = pageMetadata({
   title: "Work",
-  description:
-    "Technical case studies: a payment recovery system with adversarial hardening, a deployed skin-lesion screening tool, and production iOS release ownership.",
-};
+  description: WORK_DESCRIPTION,
+  path: "/work",
+});
 
 export default function WorkIndex() {
   const work = getCaseStudies();
 
   return (
     <>
+      <JsonLd
+        data={workIndexJsonLd(
+          WORK_DESCRIPTION,
+          work.map((d) => d.meta),
+        )}
+      />
       <section className="py-16 sm:py-24">
         <h1 className="grad-text text-[clamp(2.25rem,6vw,3.5rem)] leading-[1.05] font-semibold tracking-[-0.03em]">
           Work

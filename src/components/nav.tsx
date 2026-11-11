@@ -17,7 +17,7 @@ export function Nav({ name }: { name: string }) {
 
   return (
     <header className="sticky top-0 z-40 border-b border-border/70 bg-bg/70 backdrop-blur-xl">
-      <nav className="mx-auto flex h-16 max-w-5xl items-center gap-4 px-5 sm:px-8">
+      <nav aria-label="Primary" className="mx-auto flex h-16 max-w-5xl items-center gap-4 px-5 sm:px-8">
         <Link
           href="/"
           className="group flex items-center gap-2.5 font-mono text-sm font-medium tracking-tight text-text"

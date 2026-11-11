@@ -1,11 +1,32 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { getCaseStudies, getWriting } from "@/lib/content";
+import { homeJsonLd, pageMetadata } from "@/lib/seo";
 import { education, experience, sideProjects, site, skills } from "@/lib/site";
 import { CaseStudyCard, SideProjectRow } from "@/components/project-card";
 import { CompetitivePanel, GithubPanel } from "@/components/signals";
 import { Hero } from "@/components/hero";
+import { JsonLd } from "@/components/json-ld";
 import { Reveal, SpotlightCard } from "@/components/motion";
 import { ExternalLink, Section } from "@/components/ui";
+
+export const metadata: Metadata = pageMetadata({
+  absoluteTitle: `${site.name} — ${site.role}`,
+  description: site.positioning,
+  path: "/",
+  type: "profile",
+  keywords: [
+    site.name,
+    "IIIT Pune",
+    "Software Engineer",
+    "Applied ML",
+    "Backend Engineering",
+    "Distributed Systems",
+    "AI Systems",
+    "RecoveryOS",
+    "OncoScan",
+  ],
+});
 
 function MoreLink({ href, children }: { href: string; children: React.ReactNode }) {
   return (
@@ -24,6 +45,7 @@ export default function Home() {
 
   return (
     <>
+      <JsonLd data={homeJsonLd()} />
       <Hero primaryHref={`/work/${work[0]?.meta.slug ?? ""}`} />
 
       <Section
@@ -42,6 +64,7 @@ export default function Home() {
       </Section>
 
       <Section
+        id="writing"
         label="Writing"
         title="Notes on things I got wrong first"
         action={<MoreLink href="/writing">All posts</MoreLink>}
@@ -64,7 +87,7 @@ export default function Home() {
         </div>
       </Section>
 
-      <Section label="Signals" title="Verifiable, not self-reported">
+      <Section id="signals" label="Signals" title="Verifiable, not self-reported">
         <div className="grid gap-4 lg:grid-cols-[1.6fr_1fr]">
           <Reveal>
             <GithubPanel />
@@ -75,7 +98,7 @@ export default function Home() {
         </div>
       </Section>
 
-      <Section label="Also built" title="Supporting work">
+      <Section id="supporting-work" label="Also built" title="Supporting work">
         <Reveal>
           <ul>
             {sideProjects.map((p) => (
@@ -86,9 +109,14 @@ export default function Home() {
       </Section>
 
       <Section
+        id="experience"
         label="Experience"
         title="Where I've worked"
-        action={<ExternalLink href={site.resumePath}>Full résumé (PDF)</ExternalLink>}
+        action={
+          <ExternalLink href={site.resumePath} ariaLabel="Download full résumé PDF">
+            Full résumé (PDF)
+          </ExternalLink>
+        }
       >
         <div className="grid gap-10 lg:grid-cols-[1.7fr_1fr]">
           <Reveal>
@@ -145,7 +173,7 @@ export default function Home() {
         </div>
       </Section>
 
-      <Section label="Toolkit" title="What I reach for">
+      <Section id="toolkit" label="Toolkit" title="What I reach for">
         <Reveal>
           <dl className="grid gap-x-10 gap-y-6 sm:grid-cols-2 lg:grid-cols-3">
             {skills.map((group) => (

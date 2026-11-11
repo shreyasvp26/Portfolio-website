@@ -6,6 +6,10 @@ role: iOS Coding & Operations Lead · Android contributor
 period: Apr 2026 — Present
 status: In production
 order: 3
+published: "2026-08-19"
+updated: "2026-11-11"
+applicationCategory: "LifestyleApplication"
+operatingSystem: "iOS, Android"
 stack:
   - Next.js
   - TypeScript
@@ -34,7 +38,11 @@ Shreepad Seva Mandal is a nonprofit whose app is used by an actual community —
 
 Student projects rarely teach this. A course project is finished when it works on your laptop. An app in the store is never finished, and the skill it demands isn't writing features — it's not breaking things for people who trust you.
 
-## Architecture: one web app, two native shells
+### Why it was built
+
+Shreepad Seva Mandal needed a reliable cross-platform mobile presence that community members could install directly from the Apple App Store and Google Play without manual sideloading or developer hand-holding — and a small three-engineer team had to keep iOS and Android behaviour synchronized on top of a single shared web codebase.
+
+## Architecture and technical decisions: one web app, two native shells
 
 The app is a Next.js application running inside a Capacitor native shell, shipped as a real binary to both stores. For a three-person team maintaining two platforms, that's the decision that makes the whole thing tractable — but it relocates the difficulty rather than removing it.
 
@@ -63,7 +71,13 @@ The asymmetry shapes everything. On the web, a bad deploy is a rollback and you'
   cost="Every release carries a built-in delay before it can even be submitted, so shipping a small fix takes days rather than hours. Genuinely frustrating, and still cheaper than an expedited-review request against a broken build."
 />
 
-## Implementation and trade-offs
+## Technologies used
+
+- **Next.js & TypeScript:** Shared web application codebase containing product UI and core application logic.
+- **Capacitor:** Native iOS and Android container layer wrapping the web app with native device bridges.
+- **TestFlight & App Store Connect:** Beta testing distribution, external tester gating, build archiving, privacy metadata checks, and iOS release governance alongside Android parity fixes.
+
+## Engineering challenges and trade-offs
 
 **Authentication is the worst class of production bug.** A user who can't log in has no path to tell you about it — they stop opening the app, and you never hear from them. The failure is silent by construction, so you can't rely on user reports and have to reason about the state machine directly: what happens to a session that expires while the app is backgrounded, what happens when a token was invalidated server-side, what happens when the same person signs in on a second device.
 
@@ -79,6 +93,10 @@ Notifications are also the easiest thing in mobile to *believe* you've fixed, be
 My solo projects taught me architecture and modelling. This one taught me the cost of being wrong in front of people who never consented to being test subjects — and that a large share of production engineering is arranging things so the expensive mistakes are the hard ones to make.
 </Callout>
 
-## Outcomes
+## Results and measurable outcomes
 
-The app is [live on the App Store](https://apps.apple.com/in/app/shreepad-seva-mandal/id6788840546) and actively maintained. Releases go out through a pipeline I own, and production issues in authentication, notifications, and cross-platform behaviour have been diagnosed and fixed rather than worked around. The organisation gets a working app; I got the experience of shipping software where the users are strangers and the review gate has no undo.
+- **Live production mobile release:** Publicly listed and actively maintained on the Apple App Store while sharing a single Next.js + Capacitor core across iOS and Android.
+- **Small-team operational throughput:** Maintained and shipped by a **3-developer** team without dedicated QA engineers or release managers, with repeatable TestFlight gating before App Store submission.
+- **Production reliability improvements:** Diagnosed and resolved real-device session/redirect edge cases in WebView authentication, device-token rotation and permission differences in push notifications, and cross-platform Android/iOS parity drift.
+
+**Links:** The production iOS release is publicly available on the App Store at [Shreepad Seva Mandal](https://apps.apple.com/in/app/shreepad-seva-mandal/id6788840546). The application repository is private to the nonprofit organization.

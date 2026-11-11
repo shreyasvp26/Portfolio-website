@@ -52,8 +52,14 @@ export function SideProjectRow({ project }: { project: SideProject }) {
       <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
         <h3 className="text-sm font-semibold text-text">{project.name}</h3>
         <div className="flex gap-4 text-sm">
-          <ExternalLink href={project.repo}>Code</ExternalLink>
-          {project.demo ? <ExternalLink href={project.demo}>Demo</ExternalLink> : null}
+          <ExternalLink href={project.repo} ariaLabel={`View ${project.name} source code on GitHub`}>
+            Code
+          </ExternalLink>
+          {project.demo ? (
+            <ExternalLink href={project.demo} ariaLabel={`Open ${project.name} live demo`}>
+              Demo
+            </ExternalLink>
+          ) : null}
         </div>
       </div>
       <p className="mt-1.5 max-w-3xl text-sm leading-relaxed text-muted">{project.blurb}</p>

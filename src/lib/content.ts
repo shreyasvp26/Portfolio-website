@@ -33,6 +33,12 @@ export type CaseStudyMeta = {
     | "Redeploying"
     | "Archived";
   order: number;
+  /** ISO date strings (YYYY-MM-DD) used for deterministic sitemap and JSON-LD dates. */
+  published?: string;
+  updated?: string;
+  /** Schema.org SoftwareApplication category & OS metadata. */
+  applicationCategory?: string;
+  operatingSystem?: string;
   metrics?: Metric[];
   /** Optional caveat rendered above the body, e.g. unmeasured benchmarks. */
   disclosure?: string;

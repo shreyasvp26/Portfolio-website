@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { Download } from "lucide-react";
 import {
   achievements,
@@ -10,12 +11,18 @@ import {
   skills,
 } from "@/lib/site";
 import { getCaseStudies } from "@/lib/content";
+import { pageMetadata, resumeJsonLd } from "@/lib/seo";
+import { JsonLd } from "@/components/json-ld";
 import { ButtonLink, ExternalLink } from "@/components/ui";
 
-export const metadata: Metadata = {
+const RESUME_DESCRIPTION = `Résumé of ${site.name} — B.Tech Computer Science & Engineering at IIIT Pune (May 2027), experience at Shreepad Seva Mandal and Xelron, featured systems and ML projects, and technical skills.`;
+
+export const metadata: Metadata = pageMetadata({
   title: "Résumé",
-  description: `Résumé of ${site.name} — B.Tech CSE, IIIT Pune.`,
-};
+  description: RESUME_DESCRIPTION,
+  path: "/resume",
+  type: "profile",
+});
 
 function Block({ label, children }: { label: string; children: React.ReactNode }) {
   return (
@@ -32,6 +39,7 @@ export default function ResumePage() {
 
   return (
     <div className="py-12 sm:py-16">
+      <JsonLd data={resumeJsonLd(RESUME_DESCRIPTION)} />
       <header className="flex flex-wrap items-start justify-between gap-6">
         <div>
           <h1 className="grad-text text-[clamp(2rem,5vw,3rem)] leading-[1.05] font-semibold tracking-[-0.03em]">
@@ -46,7 +54,12 @@ export default function ResumePage() {
             <ExternalLink href={site.socials.linkedin}>LinkedIn</ExternalLink>
           </div>
         </div>
-        <ButtonLink href={site.resumePath} variant="primary" external>
+        <ButtonLink
+          href={site.resumePath}
+          variant="primary"
+          external
+          ariaLabel="Download Shreyas Patil's résumé PDF"
+        >
           <Download className="size-4" aria-hidden />
           Download PDF
         </ButtonLink>
@@ -58,7 +71,7 @@ export default function ResumePage() {
             {education.map((e) => (
               <li key={e.institution}>
                 <div className="flex flex-wrap items-baseline justify-between gap-x-4">
-                  <p className="text-sm font-semibold text-text">{e.institution}</p>
+                  <h3 className="text-sm font-semibold text-text">{e.institution}</h3>
                   <span className="font-mono text-xs text-faint">{e.period}</span>
                 </div>
                 <p className="text-sm text-muted">
@@ -74,9 +87,9 @@ export default function ResumePage() {
             {experience.map((job) => (
               <li key={`${job.company}-${job.period}`}>
                 <div className="flex flex-wrap items-baseline justify-between gap-x-4">
-                  <p className="text-sm font-semibold text-text">
+                  <h3 className="text-sm font-semibold text-text">
                     {job.title} · <span className="font-normal text-muted">{job.company}</span>
-                  </p>
+                  </h3>
                   <span className="font-mono text-xs text-faint">{job.period}</span>
                 </div>
                 <p className="mt-0.5 text-xs text-faint">{job.location}</p>
@@ -101,13 +114,14 @@ export default function ResumePage() {
             {work.map((d) => (
               <li key={d.meta.slug}>
                 <div className="flex flex-wrap items-baseline justify-between gap-x-4">
-                  <p className="text-sm font-semibold text-text">{d.meta.title}</p>
-                  <a
+                  <h3 className="text-sm font-semibold text-text">{d.meta.title}</h3>
+                  <Link
                     href={`/work/${d.meta.slug}`}
+                    aria-label={`Read ${d.meta.title} case study`}
                     className="font-mono text-xs text-accent hover:underline"
                   >
                     case study →
-                  </a>
+                  </Link>
                 </div>
                 <p className="mt-1 text-sm leading-relaxed text-muted">{d.meta.summary}</p>
                 <p className="mt-1.5 font-mono text-xs text-faint">{d.meta.stack.join(" · ")}</p>
@@ -115,7 +129,7 @@ export default function ResumePage() {
             ))}
             {sideProjects.slice(0, 2).map((p) => (
               <li key={p.name}>
-                <p className="text-sm font-semibold text-text">{p.name}</p>
+                <h3 className="text-sm font-semibold text-text">{p.name}</h3>
                 <p className="mt-1 text-sm leading-relaxed text-muted">{p.blurb}</p>
                 <p className="mt-1.5 font-mono text-xs text-faint">{p.stack.join(" · ")}</p>
               </li>
@@ -148,7 +162,7 @@ export default function ResumePage() {
             {achievements.map((a) => (
               <li key={a.title}>
                 <div className="flex flex-wrap items-baseline justify-between gap-x-4">
-                  <p className="text-sm font-medium text-text">{a.title}</p>
+                  <h3 className="text-sm font-medium text-text">{a.title}</h3>
                   <span className="font-mono text-xs text-faint">{a.period}</span>
                 </div>
                 <p className="text-sm leading-relaxed text-muted">{a.detail}</p>

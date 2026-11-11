@@ -72,16 +72,19 @@ export function ExternalLink({
   href,
   children,
   className = "",
+  ariaLabel,
 }: {
   href: string;
   children: ReactNode;
   className?: string;
+  ariaLabel?: string;
 }) {
   return (
     <a
       href={href}
       target="_blank"
       rel="noreferrer noopener"
+      aria-label={ariaLabel}
       className={`group/l inline-flex items-center gap-1 text-muted transition-colors hover:text-accent ${className}`}
     >
       {children}
@@ -97,11 +100,13 @@ export function ButtonLink({
   href,
   variant = "secondary",
   external,
+  ariaLabel,
   children,
 }: {
   href: string;
   variant?: "primary" | "secondary";
   external?: boolean;
+  ariaLabel?: string;
   children: ReactNode;
 }) {
   const base =
@@ -114,13 +119,13 @@ export function ButtonLink({
 
   if (external) {
     return (
-      <a href={href} target="_blank" rel="noreferrer noopener" className={cls}>
+      <a href={href} target="_blank" rel="noreferrer noopener" aria-label={ariaLabel} className={cls}>
         {children}
       </a>
     );
   }
   return (
-    <Link href={href} className={cls}>
+    <Link href={href} aria-label={ariaLabel} className={cls}>
       {children}
     </Link>
   );

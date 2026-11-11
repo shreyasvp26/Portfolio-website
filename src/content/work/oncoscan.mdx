@@ -6,6 +6,10 @@ role: Sole author
 period: Jun 2026 — Jul 2026
 status: Deployed
 order: 2
+published: "2026-08-19"
+updated: "2026-11-11"
+applicationCategory: "MedicalApplication"
+operatingSystem: "Web"
 stack:
   - Python
   - PyTorch
@@ -35,7 +39,11 @@ Melanoma survival depends heavily on how early the lesion is looked at, and the 
 
 I want to be precise about scope, because medical ML attracts overclaiming. OncoScan is not a diagnostic tool and I am not qualified to build one. It is a screening demonstrator, and the interesting engineering turned out to have very little to do with squeezing out accuracy.
 
-## Architecture
+### Why it was built
+
+OncoScan started from exploring skin cancer detection via deep transfer learning on dermoscopic images. Beyond training offline classifiers on the HAM10000 dataset, I wanted to understand the engineering constraints of actually deploying a multimodal medical-adjacent model behind a live public API — cold-start latency, container memory budgets, fail-safe startup checks, and honest scope communication.
+
+## Architecture and technical decisions
 
 The system is deliberately boring: a React single-page app on Vercel, and a FastAPI service that owns the model. The one non-obvious modelling choice is that the network consumes patient metadata alongside the image.
 
@@ -54,7 +62,13 @@ I collect anatomical site and skin tone in the form but do **not** feed them to 
   cost="Deployment is less forgiving — a bad weights path takes the whole service down instead of degrading. For this use case that's the correct direction to fail."
 />
 
-## Implementation and trade-offs
+## Technologies used
+
+- **Python & PyTorch:** Multimodal inference pipeline combining an EfficientNet-B0 dermoscopic image backbone (`1280-d`) with a patient-metadata MLP (`128-d`) into a `1408-d` fused classifier trained on HAM10000.
+- **FastAPI:** Inference service exposing `POST /predict` with image size and file-type validation plus `/health` model-status reporting.
+- **React & Vite:** Frontend upload and metadata intake form with mandatory screening disclaimers, hosted on **Vercel**.
+
+## Engineering challenges and trade-offs
 
 **The trade-off I care most about is the one I lost on paper.** I trained a weighted ensemble of EfficientNet-B1 and B4, DenseNet121, and ResNet50, and it reached roughly 92% classification accuracy — higher than any single backbone I tried. It is also the version I chose not to ship.
 
@@ -72,8 +86,11 @@ I made the threshold an environment variable rather than a constant so it can be
 
 **Grad-CAM is disabled in the current release.** I had heatmap explainability working during development, but the version that survived into the deployed build produced attribution maps I wasn't confident were faithful, and a misleading heatmap over a medical image is worse than no heatmap — it manufactures trust. It's off until I can verify it.
 
-## Outcomes
+## Results and measurable outcomes
 
-There is a live, public deployment: upload a dermoscopic image, enter age and sex, get a screening result with an explicit disclaimer. The backend exposes a `/health` endpoint that reports model status, a validation script confirms the weights load correctly, and configuration is environment-driven with documented defaults.
+- **Multimodal feature fusion:** Produces a concatenated **1408-dimensional** representation (`1280-d` EfficientNet-B0 image features + `128-d` metadata MLP output) rather than discarding age and sex clinical priors.
+- **Live public deployment:** Accessible end-to-end as a React SPA on Vercel connected to the FastAPI inference API, complete with user-facing non-clinical disclaimers before showing results.
+- **Operational safeguards:** Backend refuses startup on missing or mismatched weights, exposes a `/health` endpoint reporting loaded model state, validates weights via script, and keeps `CLASSIFICATION_THRESHOLD` environment-configurable (`0.5` default, explicitly documented as clinically uncalibrated).
+- **Documented limitations:** The repository README includes an explicit four-item Known Limitations section and intentionally keeps Grad-CAM disabled until attribution faithfulness is verified.
 
-The README carries a "Known Limitations" section listing four specific things the project does not do. That section is the part I'm most confident about — a medical-adjacent ML project without one should not be trusted.
+**Links:** Source code and model documentation are hosted at [github.com/shreyasvp26/Skin-Cancer-Detection-Using-Deep-Transfer-Learning](https://github.com/shreyasvp26/Skin-Cancer-Detection-Using-Deep-Transfer-Learning), and the live public demo runs at [skin-cancerdetection.vercel.app](https://skin-cancerdetection.vercel.app/).

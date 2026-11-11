@@ -3,6 +3,9 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { getWriting, getWritingPost } from "@/lib/content";
+import { pageMetadata, writingPostJsonLd } from "@/lib/seo";
+import { site } from "@/lib/site";
+import { JsonLd } from "@/components/json-ld";
 import { Mdx } from "@/components/mdx";
 import { Tag } from "@/components/ui";
 
@@ -22,16 +25,18 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const doc = getWritingPost(slug);
   if (!doc) return {};
-  return {
+  return pageMetadata({
     title: doc.meta.title,
     description: doc.meta.description,
-    openGraph: {
-      title: doc.meta.title,
-      description: doc.meta.description,
-      type: "article",
-      publishedTime: doc.meta.date,
-    },
-  };
+    path: `/writing/${slug}`,
+    type: "article",
+    publishedTime: doc.meta.date,
+    modifiedTime: doc.meta.date,
+    authors: [site.name],
+    tags: doc.meta.tags,
+    keywords: [...doc.meta.tags, site.name],
+    ogImage: `/writing/${slug}/opengraph-image`,
+  });
 }
 
 export default async function PostPage({ params }: Props) {
@@ -41,13 +46,16 @@ export default async function PostPage({ params }: Props) {
 
   return (
     <article className="py-12 sm:py-16">
-      <Link
-        href="/writing"
-        className="inline-flex items-center gap-1.5 font-mono text-xs text-faint transition-colors hover:text-muted"
-      >
-        <ArrowLeft className="size-3.5" aria-hidden />
-        All writing
-      </Link>
+      <JsonLd data={writingPostJsonLd(doc.meta)} />
+      <nav aria-label="Breadcrumb">
+        <Link
+          href="/writing"
+          className="inline-flex items-center gap-1.5 font-mono text-xs text-faint transition-colors hover:text-muted"
+        >
+          <ArrowLeft className="size-3.5" aria-hidden />
+          All writing
+        </Link>
+      </nav>
 
       <header className="mt-7">
         <div className="flex flex-wrap gap-3 font-mono text-xs text-faint">

@@ -6,7 +6,9 @@ import { Nav } from "@/components/nav";
 import { Footer } from "@/components/footer";
 import { Backdrop } from "@/components/backdrop";
 import { CommandPalette, type PaletteItem } from "@/components/command-palette";
+import { JsonLd } from "@/components/json-ld";
 import { getCaseStudies, getWriting } from "@/lib/content";
+import { siteJsonLd } from "@/lib/seo";
 import { competitive, site } from "@/lib/site";
 
 export const metadata: Metadata = {
@@ -16,20 +18,49 @@ export const metadata: Metadata = {
     template: `%s · ${site.name}`,
   },
   description: site.positioning,
+  keywords: [
+    site.name,
+    "Software Engineer",
+    "IIIT Pune",
+    "Applied Machine Learning",
+    "Backend Engineering",
+    "Distributed Systems",
+    "AI Systems",
+    "RecoveryOS",
+    "OncoScan",
+  ],
   authors: [{ name: site.name, url: site.url }],
+  creator: site.name,
+  publisher: site.name,
+  alternates: {
+    types: {
+      "text/plain": "/llms.txt",
+    },
+  },
   openGraph: {
     type: "website",
     siteName: site.name,
+    locale: "en_US",
     title: `${site.name} — ${site.role}`,
     description: site.positioning,
-    url: site.url,
+    url: "/",
   },
   twitter: {
     card: "summary_large_image",
     title: `${site.name} — ${site.role}`,
     description: site.positioning,
   },
-  robots: { index: true, follow: true },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
+  },
 };
 
 function paletteItems(): PaletteItem[] {
@@ -138,6 +169,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" className={`${GeistSans.variable} ${GeistMono.variable} h-full`}>
       <body className="grain flex min-h-full flex-col">
+        <noscript>
+          <style>{`[data-reveal]{opacity:1!important;transform:none!important;}`}</style>
+        </noscript>
+        <JsonLd data={siteJsonLd()} />
         <Backdrop />
         <a
           href="#main"

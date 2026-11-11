@@ -43,15 +43,15 @@ export function Hero({ primaryHref }: { primaryHref: string }) {
 
       <Reveal delay={220}>
         <div className="mt-9 flex flex-wrap items-center gap-2.5">
-          <ButtonLink href={primaryHref} variant="primary">
+          <ButtonLink href={primaryHref} variant="primary" ariaLabel="Read the featured RecoveryOS case study">
             Read a case study
             <ArrowRight className="size-4" aria-hidden />
           </ButtonLink>
-          <ButtonLink href={site.resumePath} external>
+          <ButtonLink href={site.resumePath} external ariaLabel="Download Shreyas Patil's résumé as PDF">
             <Download className="size-4" aria-hidden />
             Résumé
           </ButtonLink>
-          <ButtonLink href={`mailto:${site.email}`} external>
+          <ButtonLink href={`mailto:${site.email}`} external ariaLabel={`Send email to ${site.email}`}>
             <Mail className="size-4" aria-hidden />
             Email
           </ButtonLink>

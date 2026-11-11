@@ -7,12 +7,18 @@ export const site = {
     "Final-year B.Tech CSE at IIIT Pune. I build applied ML systems on a core-CS foundation, and I'm going deep on distributed-systems engineering by building payment recovery infrastructure.",
   location: "Pune, India",
   email: "shreyasvp2605@gmail.com",
-  url: "https://shreyas-portfolio.vercel.app",
+  url: "https://shreyaspatil-dev.vercel.app",
   resumePath: "/112315129_Shreyas_Patil.pdf",
+  interests: [
+    "Software Engineering",
+    "Applied ML",
+    "Backend Engineering",
+    "Distributed Systems",
+    "AI Systems",
+  ],
   socials: {
     github: "https://github.com/shreyasvp26",
     linkedin: "https://www.linkedin.com/in/shreyas-patil-005a6830a/",
-    // TODO(shreyas): confirm these two handles — the CodeChef URL 404s as written.
     leetcode: "https://leetcode.com/u/ShreyasvPatil/",
     codechef: "https://www.codechef.com/users/shreyas_vp",
   },

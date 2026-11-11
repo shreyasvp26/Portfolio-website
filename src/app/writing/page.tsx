@@ -1,13 +1,18 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { getWriting } from "@/lib/content";
+import { pageMetadata, writingIndexJsonLd } from "@/lib/seo";
+import { JsonLd } from "@/components/json-ld";
 import { Tag } from "@/components/ui";
 
-export const metadata: Metadata = {
+const WRITING_DESCRIPTION =
+  "Technical posts on evaluation methodology, dataset leakage, agentic AI invariants, and benchmarking discipline.";
+
+export const metadata: Metadata = pageMetadata({
   title: "Writing",
-  description:
-    "Technical posts on evaluation methodology, dataset leakage, agentic AI, and benchmarking discipline.",
-};
+  description: WRITING_DESCRIPTION,
+  path: "/writing",
+});
 
 const DATE_FMT = new Intl.DateTimeFormat("en-GB", {
   day: "numeric",
@@ -20,6 +25,12 @@ export default function WritingIndex() {
 
   return (
     <>
+      <JsonLd
+        data={writingIndexJsonLd(
+          WRITING_DESCRIPTION,
+          posts.map((p) => p.meta),
+        )}
+      />
       <section className="py-16 sm:py-24">
         <h1 className="grad-text text-[clamp(2.25rem,6vw,3.5rem)] leading-[1.05] font-semibold tracking-[-0.03em]">
           Writing
