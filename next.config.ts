@@ -2,6 +2,15 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,
+  async redirects() {
+    return [
+      {
+        source: "/112315129_Shreyas_Patil.pdf",
+        destination: "/112315129_ShreyasPatil.pdf",
+        permanent: true,
+      },
+    ];
+  },
   async headers() {
     return [
       {
