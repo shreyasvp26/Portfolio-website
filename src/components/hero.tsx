@@ -6,7 +6,7 @@ import { Reveal } from "./motion";
 const FACTS = [
   { k: "Focus", v: "Applied ML · Systems" },
   { k: "Foundation", v: "Core CS · DSA" },
-  { k: "Currently", v: "iOS lead, shipped app" },
+  { k: "Recent work", v: "Mobile releases · AI evals" },
   { k: "Graduating", v: "May 2027" },
 ];
 
@@ -33,11 +33,10 @@ export function Hero({ primaryHref }: { primaryHref: string }) {
 
       <Reveal delay={150}>
         <p className="mt-6 max-w-2xl text-lg leading-relaxed text-muted sm:text-xl">
-          Final-year B.Tech CSE at{" "}
-          <span className="text-text">IIIT Pune</span>. I build applied ML systems on a core-CS
-          foundation, and I&apos;m going deep on{" "}
-          <span className="grad-accent-text font-medium">distributed-systems engineering</span> by building
-          payment recovery infrastructure.
+          I&apos;m a Computer Science student at <span className="text-text">IIIT Pune</span>, graduating
+          in 2027. I like working on software that has to behave well in the real world, from payment
+          recovery and AI memory to computer vision. My recent work spans mobile release engineering
+          and evaluating how language models reason.
         </p>
       </Reveal>
 

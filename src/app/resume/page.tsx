@@ -7,15 +7,14 @@ import {
   education,
   experience,
   site,
-  sideProjects,
+  resumeProjects,
   skills,
 } from "@/lib/site";
-import { getCaseStudies } from "@/lib/content";
 import { pageMetadata, resumeJsonLd } from "@/lib/seo";
 import { JsonLd } from "@/components/json-ld";
 import { ButtonLink, ExternalLink } from "@/components/ui";
 
-const RESUME_DESCRIPTION = `Résumé of ${site.name} — B.Tech Computer Science & Engineering at IIIT Pune (May 2027), experience at Shreepad Seva Mandal and Xelron, featured systems and ML projects, and technical skills.`;
+const RESUME_DESCRIPTION = `Résumé of ${site.name} — Computer Science student at IIIT Pune graduating in 2027, recent experience at Shreepad Seva Mandal and Xelron, software projects, and technical skills.`;
 
 export const metadata: Metadata = pageMetadata({
   title: "Résumé",
@@ -35,8 +34,6 @@ function Block({ label, children }: { label: string; children: React.ReactNode }
 }
 
 export default function ResumePage() {
-  const work = getCaseStudies();
-
   return (
     <div className="py-12 sm:py-16">
       <JsonLd data={resumeJsonLd(RESUME_DESCRIPTION)} />
@@ -45,10 +42,15 @@ export default function ResumePage() {
           <h1 className="grad-text text-[clamp(2rem,5vw,3rem)] leading-[1.05] font-semibold tracking-[-0.03em]">
             {site.name}
           </h1>
-          <p className="mt-2 max-w-xl text-sm leading-relaxed text-muted">{site.positioning}</p>
+          <p className="mt-2 max-w-xl text-sm leading-relaxed text-muted">
+            Computer Science student at IIIT Pune · graduating May 2027
+          </p>
           <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-sm">
             <a href={`mailto:${site.email}`} className="font-mono text-accent hover:underline">
               {site.email}
+            </a>
+            <a href={`tel:${site.phone.replaceAll(" ", "")}`} className="font-mono text-accent hover:underline">
+              {site.phone}
             </a>
             <ExternalLink href={site.socials.github}>GitHub</ExternalLink>
             <ExternalLink href={site.socials.linkedin}>LinkedIn</ExternalLink>
@@ -111,27 +113,20 @@ export default function ResumePage() {
 
         <Block label="Projects">
           <ul className="space-y-5">
-            {work.map((d) => (
-              <li key={d.meta.slug}>
+            {resumeProjects.map((project) => (
+              <li key={project.name}>
                 <div className="flex flex-wrap items-baseline justify-between gap-x-4">
-                  <h3 className="text-sm font-semibold text-text">{d.meta.title}</h3>
-                  <Link
-                    href={`/work/${d.meta.slug}`}
-                    aria-label={`Read ${d.meta.title} case study`}
-                    className="font-mono text-xs text-accent hover:underline"
-                  >
-                    case study →
-                  </Link>
+                  <h3 className="text-sm font-semibold text-text">{project.name}</h3>
+                  {project.href.startsWith("/") ? (
+                    <Link href={project.href} className="font-mono text-xs text-accent hover:underline">
+                      {project.linkLabel} →
+                    </Link>
+                  ) : (
+                    <ExternalLink href={project.href}>{project.linkLabel} →</ExternalLink>
+                  )}
                 </div>
-                <p className="mt-1 text-sm leading-relaxed text-muted">{d.meta.summary}</p>
-                <p className="mt-1.5 font-mono text-xs text-faint">{d.meta.stack.join(" · ")}</p>
-              </li>
-            ))}
-            {sideProjects.slice(0, 2).map((p) => (
-              <li key={p.name}>
-                <h3 className="text-sm font-semibold text-text">{p.name}</h3>
-                <p className="mt-1 text-sm leading-relaxed text-muted">{p.blurb}</p>
-                <p className="mt-1.5 font-mono text-xs text-faint">{p.stack.join(" · ")}</p>
+                <p className="mt-1 text-sm leading-relaxed text-muted">{project.summary}</p>
+                <p className="mt-1.5 font-mono text-xs text-faint">{project.stack.join(" · ")}</p>
               </li>
             ))}
           </ul>
@@ -159,7 +154,7 @@ export default function ResumePage() {
 
         <Block label="Achievements & responsibilities">
           <ul className="space-y-3.5">
-            {achievements.map((a) => (
+            {achievements.slice(0, 2).map((a) => (
               <li key={a.title}>
                 <div className="flex flex-wrap items-baseline justify-between gap-x-4">
                   <h3 className="text-sm font-medium text-text">{a.title}</h3>

@@ -24,57 +24,49 @@ export default function AboutPage() {
         </h1>
         <div className="prose-doc mt-8">
           <p>
-            I&apos;m a final-year Computer Science student at IIIT Pune. My foundation is core CS —
-            data structures, algorithms, operating systems, databases — and most of what I build sits
-            somewhere between applied machine learning and the infrastructure needed to make it
-            trustworthy.
+            I&apos;m studying Computer Science at IIIT Pune, where I expect to graduate in 2027. I enjoy
+            the point where a good idea has to meet the details that make software dependable: data,
+            failure cases, latency, and the people who will use it. That has led me to work across
+            backend systems, applied machine learning, and mobile apps.
           </p>
           <p>
-            Right now I&apos;m going deep on distributed-systems engineering by building{" "}
+            One project I keep coming back to is{" "}
             <Link href="/work/recoveryos">RecoveryOS</Link>, a payment recovery system that treats
-            failed payments as structured decisions rather than blind retries. The hardening work —
-            idempotency under concurrency, conflicting payload detection, fail-closed auth, economic
-            guardrails — taught me more about what makes infrastructure trustworthy than any amount
-            of reading would have.
+            failed payments as decisions with economic and safety constraints, rather than retries
+            without context. Working through duplicate webhooks, concurrent requests, and unclear
+            failure states has been a practical way to learn how distributed systems behave when
+            things go wrong.
           </p>
 
           <h2>How I think about building things</h2>
           <p>
-            <strong>A number without a source is a rumour.</strong> The reason my repositories
-            sometimes say <code>TBD</code> where a flattering figure would fit is that I&apos;d rather
-            publish a gap than a guess. On the deepfake project I kept an audit document that gates
-            itself on <code>grep -c &quot;TBD&quot;</code> returning zero, precisely so that I
-            couldn&apos;t quietly forget. Every headline metric on this site names the artifact that
-            backs it.
+            <strong>I want the numbers to be checkable.</strong> When I share a result, I try to point
+            to the code, tests, or evaluation behind it. A metric without that context doesn&apos;t tell
+            you much about what the system can actually do.
           </p>
           <p>
-            <strong>The interesting part is the decision, not the syntax.</strong> Frameworks turn
-            over; the reasoning doesn&apos;t. On <Link href="/work/oncoscan">OncoScan</Link> I trained a
-            four-model ensemble that scored highest and shipped a single smaller backbone instead,
-            because cold-start latency mattered more than the last point of accuracy for a public
-            demo. That trade-off is more of what I know than the model architecture is.
+            <strong>Constraints shape the engineering.</strong> On <Link href="/work/oncoscan">OncoScan</Link>,
+            I explored both an ensemble and a smaller deployable model. Thinking about inference cost,
+            response time, and how a demo behaves on a real server made the deployment choices as
+            interesting as the model itself.
           </p>
           <p>
-            <strong>Invariants belong in code, not in documents.</strong> A rule written in an
-            architecture doc is a suggestion. The same rule expressed as a lint rule, a boundary test,
-            or a build that refuses to start is a guarantee. This became concrete once I was reviewing
-            agent-generated diffs at speed: a passing test suite only tells you the assertions you
-            wrote still hold, and says nothing about the properties you never encoded.
+            <strong>Important rules should be exercised.</strong> For me, a design decision becomes
+            more useful when it is backed by a test or a guard in the code. I use that approach to
+            catch cases like duplicate events and invalid inputs before they turn into plausible but
+            incorrect results.
           </p>
           <p>
-            <strong>Failing loudly beats failing plausibly.</strong> OncoScan&apos;s server refuses to
-            boot if its model weights are missing, because a medical-adjacent tool silently serving
-            random-weight predictions is the worst outcome available. I&apos;d rather be obviously
-            broken than confidently wrong.
+            I also care about clear failure. If a service is missing something essential, it should
+            make that visible instead of quietly returning an answer people could mistake for a good
+            one.
           </p>
 
           <h2>Outside the terminal</h2>
           <p>
-            I spent three years with SAAZ, the music club at IIIT Pune, ending up as a senior member
-            organising campus events — which is where I learned that shipping something on a deadline
-            with other people is a different skill from building it well alone. I also solve
-            competitive programming problems fairly regularly; it keeps the algorithmic reflexes sharp
-            in a way that project work alone doesn&apos;t.
+            Away from projects, I was part of SAAZ, IIIT Pune&apos;s music club, and helped organise campus
+            events. I also enjoy competitive programming; it gives me a different kind of practice in
+            reasoning through a problem under constraints.
           </p>
         </div>
       </section>
