@@ -50,7 +50,7 @@ src/
     content.ts         Filesystem MDX loader
     github.ts          Build-time GitHub snapshot
 public/
-  Shreyas_Patil_Resume.pdf
+  112315129_ShreyasPatil.pdf
 ```
 
 ## Adding a case study
